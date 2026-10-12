@@ -57,7 +57,7 @@
 <td width="50%"><img src="docs/progress-card.png" alt="Claude Code 回复末尾的进度卡"><br><sub>Claude Code 回复末尾的进度卡（带验收清单）</sub></td>
 </tr>
 <tr>
-<td><img src="docs/belt.png" alt="传送带"><br><sub>传送带：越靠左越快到点，没开工的在下面排队</sub></td>
+<td><img src="docs/belt.png" alt="传送带"><br><sub>传送带：从左往右走、越靠右越快到点，没开工的在原料箱里排队</sub></td>
 <td><img src="docs/dark.png" alt="深色模式"><br><sub>深色模式跟随系统</sub></td>
 </tr>
 </table>

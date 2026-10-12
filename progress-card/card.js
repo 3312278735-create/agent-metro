@@ -66,7 +66,7 @@ const STYLE = `<style>
 .pc-tm.soon{border-color:var(--border-warning);color:var(--text-warning)}.pc-tm.late{background:var(--bg-danger);border-color:var(--border-danger);color:var(--text-danger)}
 .pc-bwrap{margin-bottom:12px}.pc-bhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:14px;margin-bottom:4px}
 .pc-lg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--text-secondary);margin:0 0 8px}.pc-lg span{display:inline-flex;align-items:center;gap:5px}.pc-sw{width:12px;height:10px;border-radius:3px;border:0.5px solid var(--border-stronger)}
-.pc-cv{display:grid;grid-template-columns:92px repeat(8,minmax(0,1fr));column-gap:4px;row-gap:2px}
+.pc-cv{display:grid;grid-template-columns:repeat(8,minmax(0,1fr)) 92px;column-gap:4px;row-gap:2px}
 .pc-st{display:flex;flex-direction:column;justify-content:flex-end;gap:4px;padding-bottom:2px;min-width:0}
 .pc-bx{font-size:12px;line-height:1.35;padding:4px 6px;border-radius:var(--radius);border:0.5px solid var(--border-stronger);background:var(--surface-2);color:var(--text-primary);overflow:hidden}
 .pc-bx b{display:block;font-weight:500;font-size:11px;color:var(--text-muted)}.pc-bx span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-all}
@@ -75,14 +75,14 @@ const STYLE = `<style>
 .pc-more{font-size:11px;color:var(--text-muted);text-align:center}
 .pc-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--text-accent);margin-left:4px;vertical-align:1px;animation:pc-pl 1.2s ease-in-out infinite}
 .pc-ax{text-align:center;font-size:11px;line-height:1.3;color:var(--text-muted)}.pc-ax.soon{color:var(--text-warning)}.pc-ax.end{color:var(--text-danger)}
-.pc-bin{grid-row:1/3;grid-column:1/2;align-self:end;border:0.5px dashed var(--border-stronger);border-radius:var(--radius);padding:6px;font-size:12px;line-height:1.5;color:var(--text-secondary);margin-bottom:6px;min-width:0}
-.pc-belt{grid-column:2/-1;width:100%;height:auto;display:block}
+.pc-bin{grid-row:1/3;grid-column:-2/-1;align-self:end;border:0.5px dashed var(--border-stronger);border-radius:var(--radius);padding:6px;font-size:12px;line-height:1.5;color:var(--text-secondary);margin-bottom:6px;min-width:0}
+.pc-belt{grid-column:1/-2;width:100%;height:auto;display:block}
 .pc-trk{fill:none;stroke:var(--border-stronger)}.pc-tread{fill:none;stroke:var(--text-secondary);animation:pc-tr 1.2s linear infinite}
 .pc-wh{fill:var(--surface-2);stroke:var(--text-secondary)}.pc-sk{fill:none;stroke:var(--text-muted)}.pc-hub{fill:var(--text-secondary)}
 .pc-spin{transform-box:fill-box;transform-origin:center;animation:pc-sp 3.2s linear infinite}.pc-spin.big{animation-duration:4.8s}
-@keyframes pc-tr{to{stroke-dashoffset:28}}@keyframes pc-sp{to{transform:rotate(-360deg)}}@keyframes pc-pl{50%{opacity:.25}}
+@keyframes pc-tr{to{stroke-dashoffset:-28}}@keyframes pc-sp{to{transform:rotate(360deg)}}@keyframes pc-pl{50%{opacity:.25}}
 @media (prefers-reduced-motion:reduce){.pc-tread,.pc-spin,.pc-dot{animation:none}}
-@media (max-width:520px){.pc-cv{grid-template-columns:64px repeat(var(--n,8),minmax(0,1fr));column-gap:2px}.pc-cv>.pc-empty{display:none}.pc-bx{font-size:11px;padding:3px 4px}}
+@media (max-width:520px){.pc-cv{grid-template-columns:repeat(var(--n,8),minmax(0,1fr)) 64px;column-gap:2px}.pc-cv>.pc-empty{display:none}.pc-bx{font-size:11px;padding:3px 4px}}
 .pc-bx.pc-click{cursor:pointer}.pc-bx.pc-click:hover{border-color:var(--text-warning)}
 .pc-btns{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 6px}.pc-btns .pc-go{margin-left:0}
 .pc-n .pc-tm{display:inline-block;margin-left:6px;padding:0 6px;line-height:1.5;vertical-align:1px}
@@ -426,7 +426,7 @@ function checkHtml(check, mode) {
 // ---------- 传送带：到点翻篇（2026-09-29 用户定） ----------
 // 用户顾不过来的时候，传送带也要能自己转。
 // 「底下做个传送带滚动的效果像坦克轮胎样，不在传送带的就不用」「其实是很小的改动，按小时就能做完」（→ 按小时算，验收期两天）。
-// 带上的站 = 还没到站（待你验收 / 进行中 / 未到站）且有到点（台账 due:）的站，越靠左越快到点（09-29 用户说刻度反了，改成左近右远、「到点」筐在最左）。
+// 带上的站 = 还没到站（待你验收 / 进行中 / 未到站）且有到点（台账 due:）的站，从左往右走、越靠右越快到点（左远右近，「到点」筐在最右）。
 // 带子刻度不等距：3 天+ / 后天 / 明天 / 今天 / 3 小时内 / 2 小时内 / 1 小时内 / 30 分内，这样验收期（天）和 AI 干活（小时）画得进同一条带。
 // 还没开工、只有预算（台账 budget:）的站不上带，在带子上方排队。开工时台账自动把到点定成「现在 + 预算」。
 // 到点：AI 的站当场收尾（落进「翻篇」）；等你验的过了验收期落进验收筐；等你审定的（ask:）过期按默认开工。
@@ -620,7 +620,7 @@ function beltHtml(l, hereId) {
   const legend = '<div class="pc-lg"><span><i class="pc-sw" style="background:var(--bg-accent);border-color:var(--border-accent)"></i>正在做</span>'
     + '<span><i class="pc-sw" style="background:var(--bg-warning);border-color:var(--border-warning)"></i>等你验（验收期两天）</span>'
     + '<span><i class="pc-sw" style="border-style:dashed"></i>还没开工</span>'
-    + '<span style="color:var(--text-muted)">越靠左越快到点</span></div>';
+    + '<span style="color:var(--text-muted)">从左往右走，越靠右越快到点</span></div>';
   const queue = queued.length
     ? `<div class="pc-note" style="margin:-4px 0 6px">排队（开工才计时）：${queued.map((x) => `${esc(norm(x.s.id))} ${esc(beltName(x.s))} ${esc(fmtSpan(x.t.budget))}${x.t.asking ? '（待审定）' : ''}`).join('、')}</div>`
     : '';
@@ -628,7 +628,7 @@ function beltHtml(l, hereId) {
   const hot = first ? ` · 最急 ${esc(norm(first.s.id))} ${esc(beltName(first.s))}（${esc(timeText(first.s, first.t))}）` : '';
   return `<details class="pc-box pc-bwrap"><summary class="pc-bhead pc-fh"><span class="pc-t">${on.length} 站在传送带上 · ${esc(l.name)}${hot}</span>`
     + `<span class="pc-note">现在 ${TODAY.slice(5)} ${clockOf(NOW)}</span></summary>${legend}${queue}`
-    + `<div class="pc-cv" style="--n:${shownCols}">${colHtml.slice().reverse().join('')}${bin}${BELT_SVG}<div></div>${axis.slice().reverse().join('')}</div></details>`;
+    + `<div class="pc-cv" style="--n:${shownCols}">${colHtml.join('')}${bin}${BELT_SVG}${axis.join('')}<div></div></div></details>`;
 }
 
 // 「到点了，要你定」：等你审定的（按期限分组）+ 到点 AI 当场收尾的（一行）+ 验收期今天到 / 返工到第 3 轮的（每站三个按钮）

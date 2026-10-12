@@ -87,7 +87,7 @@ AI 只有读到规则才会照做，而不同工具开工时自动读的文件�
 - **只改自己项目的行**（`#T0xx 项目名｜` 里的项目名是你的）。
 - 改状态优先用看板自带的命令，它会备份、保持格式、记变更记录：`node "<看板目录>/tools/ledger.js" set-status T0xx doing "备注"`（状态：`done` / `review` / `doing` / `todo` / `paused` / `dropped`）。
 - 手改时：状态变化 = 把那一行**移到对应分区**并同步 `status:`；完成时勾选 `[x]` 并追加 `done:YYYY-MM-DD`。
-- 新增任务：读文件头的 `next_task_id` → 用它做编号 → 把 `next_task_id` 加 1，在**同一次编辑**里完成。顺手更新 `last_updated`。
+- 新增任务：一律用 `node "<看板目录>/tools/ledger.js" add <项目名> "<站的文字>" [--budget 1h] [--exec mixed]`，它自己挑没人用过的编号、放进「未开始」、推 `next_task_id`。**不要手写任务行**——几个会话同时手抄 `next_task_id` 会撞号。顺手更新 `last_updated`。
 - 行格式（`due:` → `status:` → `priority:` 顺序固定，其后的字段顺序随意）：
 
 ```markdown
@@ -126,7 +126,7 @@ AI 只有读到规则才会照做，而不同工具开工时自动读的文件�
 
 ## 5. 编号
 
-- 看板 `#T0xx` 编号**全局唯一**，只由 `next_task_id` 分配。
+- 看板 `#T0xx` 编号**全局唯一**，只由 `ledger.js add` 分配（它扫一遍台账里用过的号再挑空号）。
 - 项目仓库内部自己的编号，在看板里引用时写成 `内部T015`。
 
 ## 6. 被派发来的任务（看板 → 项目）

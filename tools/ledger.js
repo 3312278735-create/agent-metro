@@ -3,6 +3,8 @@
 // 核心是纯函数（字符串进、字符串出），方便在副本上测试；落盘由 applyToDisk 负责，动手前先备份。
 //
 // 命令行：
+//   node tools/ledger.js add <项目名> "<站的文字>" [--budget 1h] [--priority P2] [--exec mixed] [--note 备注]
+//     开新站：自动挑没人用过的编号（扫 TODO / ARCHIVE / HISTORY），放进「未开始」，next_task_id 跟着往后推。手写任务行容易和别的会话撞号，一律用它。
 //   node tools/ledger.js set-status <T编号> <done|review|doing|todo|paused|dropped> [--me] [备注…]
 //     review = 待验收：AI 能做的已做完，球在用户那边（验收 / 拍板）；用户说「完成」才到站。
 //     done 默认记「自动验收」（AI 自己查过就到站）；用户亲口说「完成 T0xx」时加 --me，记「人工验收」。
@@ -739,7 +741,44 @@ function writeAtomic(file, text) {
   fs.renameSync(tmp, file);
 }
 
+/* ---------- 操作：开新站（10-12 用户：两次新站和别的会话撞号，「都做吧」） ---------- */
+// 编号不信 next_task_id 一个数：把 TODO / ARCHIVE / HISTORY 里出现过的 #T 编号全扫一遍，取比它们都大、也不小于 next_task_id 的第一个空号，
+// 写进「未开始」分区，再把 next_task_id 往后推。几个会话各自开站时，后写的那个读到的是前一个已落盘的台账，不会再撞。
+function addTask({ todoMd, archiveMd = '', historyMd = '', project, text, budget = '', priority = 'P2', exec = 'mixed', note = '', today = todayIso(), time = nowHm() }) {
+  project = String(project || '').trim();
+  text = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!project || /[｜\s]/.test(project)) throw new Error('项目名不能空、不能带空格或「｜」');
+  if (!text) throw new Error('站的文字不能空：开头半句要能单独看懂，细节写在「——」后面');
+  if (!/^P[123]$/.test(priority)) throw new Error('优先级写 P1 / P2 / P3');
+  if (!['ai', 'mixed', 'me'].includes(exec)) throw new Error('谁来做写 ai / mixed / me');
+  const used = new Set([...`${todoMd}\n${archiveMd}\n${historyMd}`.matchAll(/#T(\d+)/g)].map((m) => Number(m[1])));
+  const nextMatch = todoMd.match(/^> next_task_id: T(\d+)/m);
+  let n = Math.max(nextMatch ? Number(nextMatch[1]) : 1, Math.max(0, ...used) + 1);
+  while (used.has(n)) n++;
+  const id = `T${String(n).padStart(3, '0')}`;
+  let line = `- [ ] #${id} ${project}｜${text} due:none status:todo priority:${priority} exec:${exec} created:${today}`;
+  if (budget && budget !== 'none') {
+    if (Number.isNaN(spanMin(budget))) throw new Error('预算写成 30m、1h、1.5h 这样');
+    line += ` budget:${fmtBudget(spanMin(budget))}`;
+  }
+  if (!parseTaskLine(line)) throw new Error('拼出来的任务行格式不对，没写');
+  const todo = splitLines(todoMd);
+  insertIntoSection(todo.lines, SECTION_BY_STATUS.todo, line);
+  const ni = todo.lines.findIndex((l) => /^> next_task_id: T\d+/.test(l));
+  if (ni >= 0) todo.lines[ni] = `> next_task_id: T${String(n + 1).padStart(3, '0')}`;
+  setLastUpdated(todo.lines, today);
+  note = cleanNote(note);
+  const b = line.match(/budget:(\S+)/);
+  return {
+    todoMd: todo.lines.join(todo.eol),
+    archiveMd,
+    historyMd: prependHistory(historyMd, [`- ${today} ${time} #${id} ${project}｜新站${note ? `｜${note}` : ''}`]),
+    summary: { id, project, text, budget: b ? b[1] : '', note },
+  };
+}
+
 const OPS = {
+  'add': addTask,
   'set-status': setTaskStatus, 'archive-project': archiveProject, 'restore-project': restoreProject,
   'set-due': (a) => setTaskDate({ ...a, key: 'due' }), 'set-ask': (a) => setTaskDate({ ...a, key: 'ask' }),
   'set-budget': (a) => setTaskDate({ ...a, key: 'budget' }),
@@ -797,7 +836,7 @@ function setPin({ kind, key, pinned }, root = DEFAULT_ROOT) {
 
 module.exports = {
   readPins, setPin,
-  setTaskStatus, setTaskDate, archiveProject, restoreProject, applyToDisk, dueMs, spanMin,
+  addTask, setTaskStatus, setTaskDate, archiveProject, restoreProject, applyToDisk, dueMs, spanMin,
   beltReport, beltText, deskSync, deskText,
   listArchivedProjects, parseTaskLine, stationState, eachTask, splitLines, STATE_LABEL, ACCEPT_LABEL,
 };
@@ -818,6 +857,11 @@ if (require.main === module) {
       const accept = flags.includes('--me') ? 'me' : 'auto';
       const note = `[命令行] ${words.slice(2).join(' ')}`.trim();
       console.log(JSON.stringify(applyToDisk(op, { id: words[0].replace(/^#/, ''), status: words[1], note, accept }), null, 2));
+    } else if (op === 'add' && rest.length >= 2) {
+      // node tools/ledger.js add <项目名> "<站的文字>" [--budget 1h] [--priority P2] [--exec mixed] [--note 备注]
+      const opt = (k, d) => { const i = rest.indexOf(`--${k}`); return i >= 0 && rest[i + 1] ? rest[i + 1] : d; };
+      const plain = rest.filter((a, i) => !a.startsWith('--') && !(i > 0 && rest[i - 1].startsWith('--')));
+      console.log(JSON.stringify(applyToDisk('add', { project: plain[0], text: plain.slice(1).join(' '), budget: opt('budget', ''), priority: opt('priority', 'P2'), exec: opt('exec', 'mixed'), note: `[命令行] ${opt('note', '')}`.trim() }), null, 2));
     } else if ((op === 'set-due' || op === 'set-ask' || op === 'set-budget') && rest.length >= 2) {
       const note = `[命令行] ${rest.slice(2).join(' ')}`.trim();
       console.log(JSON.stringify(applyToDisk(op, { id: rest[0].replace(/^#/, ''), value: rest[1], note }), null, 2));

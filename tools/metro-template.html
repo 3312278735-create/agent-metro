@@ -154,8 +154,10 @@
 
   /* 页头：标题旁两个数，右边搜索框和「筛选」 */
   .hd-nums { display: inline-flex; align-items: baseline; gap: 10px; font-size: 14px; font-weight: 600; white-space: nowrap; }
-  .hd-nums .n-rev { color: var(--review-ink); }
-  .hd-nums .n-doing { color: var(--doing-ink); }
+  /* 页头两个数做成扁平小色块（#T167） */
+  .hd-nums .n-rev, .hd-nums .n-doing { font-size: 13px; padding: 1px 8px; border-radius: 5px; }
+  .hd-nums .n-rev { color: var(--review-ink); background: var(--review-tint); }
+  .hd-nums .n-doing { color: var(--doing-ink); background: var(--doing-tint); }
   .hd-tools { display: flex; align-items: center; gap: 8px; flex: 1 1 auto; justify-content: flex-end; min-width: 0; }
   .hd-tools .search { margin-left: 0; }
   .chip .caret { font-size: 10px; opacity: .7; }
@@ -168,42 +170,124 @@
   .todo-head h2 { margin: 0; font-size: 15px; white-space: nowrap; }
   .todo-head .n { font-size: 13px; font-weight: 700; color: var(--review-ink); }
   .todo-head .sub { font-size: 12.5px; color: var(--muted); }
+  .todo-box.folded .todo-head { border-bottom: 0; }
+  .belt-head .fold-btn, .todo-head .fold-btn { align-self: center; margin: 0 -4px 0 -6px; }
   .todo-list { list-style: none; margin: 0; padding: 0; }
-  .todo-row { display: grid; grid-template-columns: 84px minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 8px 16px; border-bottom: 1px solid var(--grid); cursor: pointer; }
+  .todo-row { display: grid; grid-template-columns: 84px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 16px; border-bottom: 1px solid var(--grid); cursor: pointer; }
   .todo-row:hover { background: var(--wash); }
   .todo-row .when { font-size: 12px; font-weight: 600; text-align: center; border-radius: 6px; padding: 1px 6px; background: var(--idle-tint); color: var(--idle-ink); white-space: nowrap; }
   .todo-row .when.late { background: color-mix(in srgb, var(--critical) 14%, var(--surface-1)); color: var(--critical); }
   .todo-row .when.today { background: var(--review-tint); color: var(--review-ink); }
   .todo-row .t { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .todo-row .proj { font-size: 12px; color: var(--text-secondary); background: var(--wash); border-radius: 6px; padding: 1px 7px; white-space: nowrap; }
+  .todo-row .proj { font-size: 12px; color: color-mix(in srgb, var(--pj, #888) 72%, var(--text-primary)); background: color-mix(in srgb, var(--pj, #888) 15%, var(--surface-1)); border-radius: 5px; padding: 1px 7px; white-space: nowrap; }
+  /* 越急越显眼（#T167）：左边色条 + 底色，还远的变淡 */
+  .todo-row { border-left: 4px solid transparent; }
+  .todo-row.u0 { border-left-color: var(--critical); background: color-mix(in srgb, var(--critical) 7%, var(--surface-1)); }
+  .todo-row.u0 .when.late { background: var(--critical); color: #fff; }
+  .todo-row.u1 { border-left-color: color-mix(in srgb, var(--critical) 55%, transparent); }
+  .todo-row.u2 { border-left-color: var(--review); }
+  .todo-row.u3 { opacity: .62; }
+  .todo-row.u3:hover { opacity: 1; }
   .todo-row .go { appearance: none; border: 0; background: none; padding: 0; font: inherit; font-size: 12.5px; color: var(--review-ink); cursor: pointer; white-space: nowrap; }
   .todo-more { appearance: none; display: block; width: 100%; text-align: left; border: 0; background: var(--head-bg); padding: 8px 16px; font: inherit; font-size: 13px; color: var(--text-secondary); cursor: pointer; }
   .todo-more:hover { color: var(--text-primary); }
   .todo-empty { padding: 10px 16px; font-size: 13px; color: var(--done-ink); }
   .todo-list .todo-row:last-child { border-bottom: 0; }
-  /* 传送带（#T122）：有到点的站排在带上，越靠左越快到点；最左「到点」筐收过点的；没开工的在下面排队写预算。倒计时页面自己走 */
+  /* 传送带（#T122）：有到点的站排在带上，从左往右走、越靠右越快到点；最右「到点」筐收过点的（10-12 用户：习惯性左向右）；没开工的在下面排队写预算。倒计时页面自己走 */
   .belt-box { margin: 16px 0 0; background: var(--z-open); border: 1px solid var(--z-open-edge); border-radius: 14px; box-shadow: var(--card-shadow); overflow: hidden; }
   .belt-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; padding: 10px 16px; }
   .belt-head h2 { margin: 0; font-size: 15px; color: var(--z-open-ink); white-space: nowrap; }
   .belt-head .hot { font-size: 13px; font-weight: 600; color: var(--text-primary); }
   .belt-head .sub { font-size: 12.5px; color: var(--muted); margin-left: auto; }
-  .belt-row { display: flex; flex-wrap: wrap; gap: 10px 4px; padding: 0 12px 10px; align-items: stretch; }
-  .belt-col { flex: 1 1 120px; min-width: 112px; max-width: 220px; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; }
+  .belt-row { display: flex; flex-wrap: nowrap; gap: 10px 4px; padding: 0 12px 10px; align-items: flex-end; }
+  @media (max-width: 720px) { .belt-row { flex-wrap: wrap; } }
+  .belt-col { flex: 1 1 0; min-width: 0; max-width: 220px; display: flex; flex-direction: column; justify-content: flex-end; }
+  .belt-col.slot-empty { flex: 0 0 38px; min-width: 38px; }
+  /* 越快到点越显眼：u0 = 30 分内 … u7 = 3 天+ */
+  .belt-col.u0 .bx, .belt-col.u1 .bx { border-width: 2px; box-shadow: 0 0 0 2px color-mix(in srgb, var(--critical) 18%, transparent); }
+  .belt-col.u0 .bx.rev, .belt-col.u1 .bx.rev { background: color-mix(in srgb, var(--review) 30%, var(--surface-1)); border-color: var(--review); }
+  .belt-col.u0 .bx.run, .belt-col.u1 .bx.run { background: color-mix(in srgb, var(--accent) 24%, var(--surface-1)); border-color: var(--accent); }
+  .belt-col.u2 .bx, .belt-col.u3 .bx { border-width: 1.5px; }
+  .belt-col.u5 .bx { opacity: .82; }
+  .belt-col.u6 .bx { opacity: .66; }
+  .belt-col.u7 .bx { opacity: .5; }
+  .belt-col.u5 .bx:hover, .belt-col.u6 .bx:hover, .belt-col.u7 .bx:hover { opacity: 1; }
+  @media (max-width: 720px) { .belt-col.slot-empty { display: none; } }
   .belt-col .boxes { display: flex; flex-direction: column-reverse; gap: 4px; padding: 0 3px; }
-  .belt-col .tread { height: 12px; border-radius: 6px; background: repeating-linear-gradient(90deg, var(--axis) 0 9px, transparent 9px 14px), var(--grid); background-size: 14px 100%; animation: tread 1.2s linear infinite; }
-  @keyframes tread { from { background-position: 0 0; } to { background-position: -14px 0; } }
-  @media (prefers-reduced-motion: reduce) { .belt-col .tread { animation: none; } }
+  .belt-mid { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .belt-cols { display: flex; gap: 4px; align-items: flex-end; }
+  .bt-belt { display: block; width: 100%; height: auto; }
+  .bt-trk { fill: none; stroke: var(--axis); }
+  .bt-tread { fill: none; stroke: var(--text-secondary); animation: bttread 1.2s linear infinite; }
+  .bt-wh { fill: var(--surface-1); stroke: var(--text-secondary); }
+  .bt-sk { fill: none; stroke: var(--muted); }
+  .bt-hub { fill: var(--text-secondary); }
+  .bt-spin { transform-box: fill-box; transform-origin: center; animation: btspin 3.2s linear infinite; }
+  .bt-spin.big { animation-duration: 4.8s; }
+  @keyframes bttread { to { stroke-dashoffset: -28; } }
+  @keyframes btspin { to { transform: rotate(360deg); } }
+  @keyframes tread { from { background-position: 0 0; } to { background-position: 14px 0; } }
+  @media (prefers-reduced-motion: reduce) { .bt-tread, .bt-spin { animation: none; } }
   .belt-col .lbl { font-size: 11.5px; text-align: center; color: var(--muted); line-height: 1.3; }
   .belt-col .lbl.soon { color: var(--critical); font-weight: 600; }
-  .belt-bin { flex: 0 1 150px; min-width: 120px; border: 1px dashed var(--axis); border-radius: 10px; padding: 6px 8px; font-size: 12.5px; color: var(--text-secondary); background: var(--surface-1); display: flex; flex-direction: column; gap: 4px; }
+  .belt-bin { min-width: 0; border: 1px dashed var(--axis); border-radius: 10px; padding: 6px 8px; font-size: 12.5px; color: var(--text-secondary); background: var(--surface-1); display: flex; flex-direction: column; gap: 2px; }
+  /* 流水线（#T163）：左「待上线」→ 带子 → 右「过了期没处理」+「成品箱」 */
+  .belt-in, .belt-end { flex: 0 0 140px; min-width: 0; margin-bottom: 30px; display: flex; flex-direction: column; gap: 6px; }
+  .belt-in { border: 1px dashed var(--axis); border-radius: 10px; padding: 6px 8px; font-size: 12.5px; color: var(--text-secondary); background: var(--surface-1); gap: 2px; }
+  .belt-in b, .belt-out b { color: var(--text-primary); font-size: 13px; }
+  .belt-in .hint, .belt-out .hint { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+  .belt-in .row, .belt-out .row { appearance: none; border: 0; background: none; font: inherit; font-size: 12px; text-align: left; padding: 1px 0; cursor: pointer; color: var(--text-primary); min-width: 0; }
+  .belt-in .row .nm, .belt-out .row .nm { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .belt-in .row .id, .belt-out .row .id { color: var(--muted); font-weight: 700; margin-right: 4px; }
+  .belt-in .row .lf { display: block; font-size: 11px; color: var(--text-secondary); }
+  .belt-in .row .lf.due { color: var(--critical); }
+  .belt-in .row:hover .nm, .belt-out .row:hover .nm { text-decoration: underline; }
+  .belt-out { border: 1px solid color-mix(in srgb, var(--good) 55%, transparent); border-radius: 10px; padding: 6px 8px; background: var(--done-tint); display: flex; flex-direction: column; gap: 2px; font-size: 12.5px; }
+  /* 末端的箱子 */
+  .crate { border-radius: 10px; border: 1px solid; overflow: hidden; }
+  .crate.late { border-color: color-mix(in srgb, var(--critical) 40%, transparent); background: color-mix(in srgb, var(--critical) 6%, var(--surface-1)); color: var(--critical); }
+  .crate.done { border-color: color-mix(in srgb, var(--good) 45%, transparent); background: var(--done-tint); color: var(--done-ink); }
+  .crate.raw { border-color: var(--axis); background: var(--surface-1); color: var(--text-secondary); }
+  .crate.raw.hot { border-color: color-mix(in srgb, var(--critical) 45%, transparent); }
+  .crate-list .row .lf.due { color: var(--critical); }
+  .belt-start { flex: 0 0 140px; min-width: 0; margin-bottom: 30px; }
+  @media (max-width: 720px) { .belt-start { flex: 1 1 100%; margin-bottom: 0; } }
+  .crate-btn { appearance: none; border: 0; background: none; width: 100%; display: flex; align-items: center; gap: 6px; padding: 7px 9px; font: inherit; font-size: 12.5px; color: inherit; cursor: pointer; text-align: left; }
+  .crate-btn:hover { background: var(--wash); }
+  .crate-ic { width: 24px; height: 24px; flex: none; }
+  .crate-t { font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+  .crate-n { margin-left: auto; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .crate-arrow { font-size: 9px; color: var(--muted); }
+  .crate-list { padding: 0 9px 7px; display: flex; flex-direction: column; gap: 2px; font-size: 12.5px; color: var(--text-secondary); }
+  .crate-list .sec { margin-top: 2px; font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+  .crate-list .row { appearance: none; border: 0; background: none; font: inherit; font-size: 12px; text-align: left; padding: 1px 0; cursor: pointer; color: var(--text-primary); min-width: 0; }
+  .crate-list .row .nm { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .crate-list .row .id { color: var(--muted); font-weight: 700; margin-right: 4px; }
+  .crate-list .row:hover .nm, .crate-list .row:hover { text-decoration: underline; }
+  .crate-list .ok { color: var(--done-ink); font-weight: 700; }
+  .crate-list .belt-more { text-align: left; }
+  .crate-list .hint { font-size: 11px; color: var(--muted); }
+  .crate-list .row .lf { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-secondary); }
+  .belt-out .row .lf { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-secondary); }
+  .belt-out .row .ok { color: var(--done-ink); font-weight: 700; }
+  .belt-out .acc { margin-left: 0; }
+  .belt-in .belt-more, .belt-out .belt-more { text-align: left; }
+  .bx .spin { display: inline-block; width: 8px; height: 8px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; margin-right: 4px; vertical-align: -1px; animation: beltspin .9s linear infinite; }
+  @keyframes beltspin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .bx .spin { animation: none; } }
+  @media (max-width: 720px) { .belt-in, .belt-end { flex: 1 1 100%; margin-bottom: 0; } }
   .belt-bin b { color: var(--text-primary); font-size: 13px; }
   .belt-bin.hot { border-color: var(--critical); }
-  .belt-bin .bx { border-style: solid; }
-  .bx { appearance: none; text-align: left; font: inherit; border: 1px solid var(--border); border-radius: 8px; padding: 4px 7px; cursor: pointer; background: var(--surface-1); color: var(--text-primary); display: grid; gap: 1px; }
+  .belt-bin .sec { margin-top: 2px; font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+  .belt-bin .row { appearance: none; border: 0; background: none; font: inherit; font-size: 12px; text-align: left; padding: 1px 0; cursor: pointer; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .belt-bin .row:hover { text-decoration: underline; }
+  .belt-bin .row .id { color: var(--muted); font-weight: 700; margin-right: 4px; }
+  .belt-bin .belt-more { text-align: left; }
+  .bx { appearance: none; text-align: left; font: inherit; min-width: 0; border: 1px solid var(--border); border-radius: 8px; padding: 4px 7px; cursor: pointer; background: var(--surface-1); color: var(--text-primary); display: grid; gap: 1px; }
   .bx:hover { filter: brightness(.97); }
-  .bx .id { font-size: 11px; font-weight: 700; color: var(--muted); }
+  .bx .id { font-size: 11px; font-weight: 700; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .bx .nm { font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .bx .lf { font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
+  .bx .lf { font-size: 11px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .bx.run { background: var(--doing-tint); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
   .bx.run .id { color: var(--doing-ink); }
   .bx.rev { background: var(--review-tint); border-color: color-mix(in srgb, var(--review) 50%, transparent); }
@@ -211,8 +295,6 @@
   .bx.late { background: color-mix(in srgb, var(--critical) 12%, var(--surface-1)); border-color: color-mix(in srgb, var(--critical) 50%, transparent); }
   .bx.late .id, .bx.late .lf { color: var(--critical); }
   .belt-more { appearance: none; border: 0; background: none; font: inherit; font-size: 11.5px; color: var(--muted); text-align: center; cursor: pointer; }
-  .belt-queue { padding: 8px 16px 10px; border-top: 1px solid var(--z-open-edge); font-size: 12.5px; color: var(--text-secondary); }
-  .belt-queue .q { display: inline-block; margin: 2px 8px 2px 0; padding: 1px 7px; border: 1px dashed var(--axis); border-radius: 6px; background: var(--surface-1); cursor: pointer; }
   .belt-empty { padding: 0 16px 12px; font-size: 13px; color: var(--text-secondary); }
   /* 从「要你做的」跳过来的那一站闪两下 */
   @keyframes flash { 0% { box-shadow: 0 0 0 0 var(--review); } 40% { box-shadow: 0 0 0 4px var(--review); } 100% { box-shadow: 0 0 0 0 transparent; } }
@@ -263,30 +345,42 @@
       border: 2px solid var(--accent); opacity: 0; animation: pulse 2.4s ease-out infinite;
     }
     .station .dot[data-state="review"]::after { border-color: var(--review); }
+    /* 在做的站转圈（#T167，和传送带一样） */
+    .station .dot[data-state="doing"]::after { inset: -5px; opacity: 1; border-right-color: transparent; animation: stspin 1s linear infinite; }
+    @keyframes stspin { to { transform: rotate(360deg); } }
     @keyframes pulse { 0% { transform: scale(.7); opacity: .55; } 100% { transform: scale(1.25); opacity: 0; } }
   }
 
   /* 状态小标签（线路左侧的计数、站名下面的状态） */
   .pill {
     display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
-    font-size: 11.5px; font-weight: 600; line-height: 1.6; padding: 0 8px; border-radius: 999px;
+    font-size: 11.5px; font-weight: 600; line-height: 1.6; padding: 0 8px; border-radius: 5px;
     background: var(--idle-tint); color: var(--idle-ink);
   }
   .pill[data-state="done"] { background: var(--done-tint); color: var(--done-ink); }
   .pill[data-state="review"] { background: var(--review-tint); color: var(--review-ink); }
   .pill[data-state="doing"] { background: var(--doing-tint); color: var(--doing-ink); }
   .pill[data-state="dropped"] { color: var(--muted); }
+  .pill[data-state="paused"] { background: transparent; border: 1px dashed var(--axis); }
+  .bar.bat-mini { height: auto; background: none; border-radius: 0; overflow: visible; display: flex; align-items: center; gap: 2px; }
+  .bm-body { flex: 1; display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; padding: 2px; border: 2px solid color-mix(in srgb, var(--text-primary) 38%, transparent); border-radius: 5px; }
+  .bar.bat-mini .bm-body i { display: block; height: 8px; border-radius: 2px; background: transparent; }
+  .bm-nub { flex: none; width: 3px; height: 7px; border-radius: 0 2px 2px 0; background: color-mix(in srgb, var(--text-primary) 38%, transparent); }
   .pill .dot.sm { width: 12px; height: 12px; border-width: 1.5px; }
   .pill .dot.sm svg { width: 7px; height: 7px; }
 
   /* 线路卡片：左边信息（浅灰底），右边轨道（白底） */
   .line {
-    display: grid; grid-template-columns: 232px minmax(0, 1fr); align-items: stretch;
+    display: block; /* 项目信息收成顶上一行，站点占满整宽 */
     background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px;
     margin-bottom: 10px; overflow: hidden; box-shadow: var(--card-shadow);
   }
   .line:last-child { margin-bottom: 0; }
-  .line-head { padding: 14px 16px; background: var(--head-bg); border-right: 1px solid var(--grid); display: flex; flex-direction: column; gap: 7px; }
+  .line-head { padding: 10px 16px; background: var(--head-bg); border-bottom: 1px solid var(--grid); display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+  .line-head .line-links { margin: 0; padding: 0; }
+  .line-more { appearance: none; margin-left: auto; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-1); font: inherit; font-size: 12px; line-height: 1; padding: 4px 8px; color: var(--text-secondary); cursor: pointer; }
+  .line-more:hover { color: var(--text-primary); border-color: var(--axis); }
+  .line-links + .line-more { margin-left: 0; }
   .line-title { display: flex; align-items: center; gap: 9px; min-width: 0; }
   .line-no {
     flex: none; min-width: 26px; height: 26px; padding: 0 7px; border-radius: 8px;
@@ -398,18 +492,21 @@
 
   .track-wrap { display: grid; align-items: center; min-width: 0; }
   /* 一条线放不下就折到下一行，不再横着拖、不被右边截掉 */
-  .track { display: flex; flex-wrap: wrap; row-gap: 10px; margin: 0; padding: 16px 14px 10px; list-style: none; }
-  .track.is-quiet { padding: 10px 14px; }
-  .stop { flex: 0 0 156px; }
-  .stop.is-focus { flex-basis: 220px; }
+  .track { display: flex; flex-wrap: wrap; row-gap: 6px; margin: 0; padding: 10px 12px 6px; list-style: none; }
+  .track.is-quiet { padding: 8px 12px; }
+  /* 紧凑：站窄一点、留白少一点、字小一号、标题最多两行 */
+  .stop { flex: 0 0 124px; }
+  .stop.is-focus { flex-basis: 156px; }
+  /* 整齐：要盯的站卡片一样宽一样高，标题最多两行、靠上排；「⋯ N」固定窄格 */
+  .stop.is-focus .station { height: 64px; justify-content: flex-start; }
   .station {
     appearance: none; border: 0; background: transparent; color: inherit; font: inherit;
-    width: 100%; padding: 0 6px 8px; border-radius: 10px; cursor: pointer; text-align: center;
+    width: 100%; padding: 0 5px 6px; border-radius: 8px; cursor: pointer; text-align: center;
     display: flex; flex-direction: column; align-items: center; gap: 0;
     --rail-pad: 6px;
   }
   .station:hover { background: var(--wash); }
-  .rail { position: relative; width: 100%; height: 34px; display: grid; place-items: center; }
+  .rail { position: relative; width: 100%; height: 26px; display: grid; place-items: center; }
   /* 轨道按站拆成左右两半，宽窄不一样也能接上。驶入到站的那一半 = 实线绿，其余 = 灰虚线 */
   .seg { position: absolute; top: 50%; height: 0; border-top: 2px dashed var(--axis); transform: translateY(-1px); }
   /* 伸出按钮左右留白，两站的线才接得上 */
@@ -420,11 +517,12 @@
   .stop:first-of-type .seg.in,
   .stop:last-of-type .seg.out { display: none; }
   .st-title {
-    margin-top: 4px; font-size: 13px; line-height: 1.4; font-weight: 500; color: var(--text-primary);
-    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    margin-top: 2px; font-size: 12px; line-height: 1.35; font-weight: 500; color: var(--text-primary);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     overflow-wrap: anywhere;
   }
   .stop[data-state="done"] .st-title { color: var(--text-secondary); font-weight: 400; }
+  .stop[data-state="todo"] .dot, .stop[data-state="todo"] .st-title { opacity: .6; }
   /* 验收方式（2026-10-10）：自动验收 = AI 替你验的，圆点空心绿勾 + 虚线小标签；人工验收 = 你亲手验的，实心绿点 + 绿底小标签 */
   .stop[data-acc="auto"] .dot, .dot[data-acc="auto"] { background: var(--surface-1); color: var(--good); }
   .acc { display: inline-block; margin-left: 4px; padding: 0 5px; border-radius: 5px; font-size: 10.5px; line-height: 16px; font-weight: 500; white-space: nowrap; vertical-align: 1px; }
@@ -432,15 +530,15 @@
   .acc-auto { border: 1px dashed var(--good); color: var(--done-ink); }
   .stop[data-state="dropped"] .st-title { color: var(--text-secondary); font-weight: 400; text-decoration: line-through; text-decoration-color: var(--muted); }
   /* 待验收、进行中、置顶：横向上占得更宽，底色和字重都压过没开始的站 */
-  .stop.is-focus .st-title { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+  .stop.is-focus .st-title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
   .stop.is-focus[data-state="review"] .station { background: var(--review-tint); }
   .stop.is-focus[data-state="doing"] .station { background: var(--doing-tint); }
   .stop.is-focus[data-state="todo"] .station,
   .stop.is-focus[data-state="paused"] .station,
   .stop.is-focus[data-state="done"] .station,
   .stop.is-focus[data-state="dropped"] .station { background: var(--z-pinned); }
-  .stop.is-focus .dot { width: 26px; height: 26px; }
-  .stop.is-focus .dot svg { width: 14px; height: 14px; }
+  .stop.is-focus .dot { width: 20px; height: 20px; }
+  .stop.is-focus .dot svg { width: 11px; height: 11px; }
   .stop.is-focus[data-state="review"] .dot { box-shadow: 0 0 0 3px var(--review-tint); }
   .stop.is-focus[data-state="doing"] .dot { box-shadow: 0 0 0 3px var(--doing-tint); }
   .stop.is-focus[data-state="todo"] .dot,
@@ -450,7 +548,8 @@
   .stop.is-focus[data-state="review"] .station:hover { background: color-mix(in srgb, var(--review) 28%, var(--surface-1)); }
   .stop.is-focus[data-state="doing"] .station:hover { background: color-mix(in srgb, var(--accent) 18%, var(--surface-1)); }
   /* 做完的、停运的、归档线上剩下的，收成轨道上的小点，不铺绿线 */
-  .stop.pack { flex: 0 0 auto; }
+  .stop.pack { flex: 0 0 34px; }
+  .stop.pack .station { width: 100%; }
   .stop.pack .station { width: auto; padding: 0; --rail-pad: 0px; background: transparent; }
   .stop.pack .station:hover { background: transparent; }
   .stop.pack .rail { width: auto; }
@@ -469,6 +568,31 @@
   .stop:not(.is-focus):not(.pack) .dot { width: 12px; height: 12px; border-width: 1.5px; box-shadow: 0 0 0 3px var(--surface-1); }
   .stop:not(.is-focus):not(.pack) .dot svg { width: 7px; height: 7px; }
   .stop:not(.is-focus):not(.pack) .st-title { min-height: 0; font-size: 12px; font-weight: 400; color: var(--muted); -webkit-line-clamp: 2; }
+  /* 站点卡片照传送带方块（#T167 第七轮）：一样宽、靠左、编号 / 站名 / 状态三行，颜色跟状态走；「⋯ N」是中间的小胶囊 */
+  .track { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; align-items: stretch; }
+  .track .stop { min-width: 0; }
+  .more-btn { appearance: none; width: 100%; height: 100%; min-height: 56px; border: 1px dashed var(--axis); border-radius: 8px; background: transparent; font: inherit; font-size: 12.5px; color: var(--text-secondary); cursor: pointer; }
+  .more-btn:hover { color: var(--text-primary); border-color: var(--text-secondary); background: var(--wash); }
+  .track .stop.sbx-stop { flex: 0 0 150px; }
+  .track .stop .station.sbx { display: grid; align-content: start; gap: 1px; height: auto; min-height: 0; padding: 5px 8px; text-align: left; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-1); }
+  .track .stop .station.sbx:hover { filter: brightness(.97); }
+  .sbx-id { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: var(--muted); }
+  .sbx-pin { display: inline-grid; width: 11px; margin-left: auto; color: var(--muted); }
+  .sbx-nm { font-size: 12.5px; font-weight: 600; line-height: 1.35; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* 和传送带一样一行，全名在鼠标停留和详情里 */
+  .sbx-lf { font-size: 11px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sbx .spin { display: inline-block; width: 8px; height: 8px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: beltspin .9s linear infinite; }
+  .track .stop[data-state="review"] .station.sbx { background: var(--review-tint); border-color: color-mix(in srgb, var(--review) 50%, transparent); }
+  .track .stop[data-state="review"] .sbx-id { color: var(--review-ink); }
+  .track .stop[data-state="doing"] .station.sbx { background: var(--doing-tint); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+  .track .stop[data-state="doing"] .sbx-id { color: var(--doing-ink); }
+  .track .stop[data-state="done"] .station.sbx { background: var(--done-tint); border-color: color-mix(in srgb, var(--good) 35%, transparent); }
+  .track .stop[data-state="done"] .sbx-id, .track .stop[data-state="done"] .sbx-lf { color: var(--done-ink); }
+  .track .stop[data-state="paused"] .station.sbx { border-style: dashed; }
+  .track .stop[data-state="todo"] .sbx-nm, .track .stop[data-state="paused"] .sbx-nm { color: var(--text-secondary); font-weight: 500; }
+  .track .stop[data-state="dropped"] .sbx-nm { color: var(--muted); font-weight: 400; text-decoration: line-through; }
+  .track .stop.is-focus[data-state="todo"] .station.sbx, .track .stop.is-focus[data-state="paused"] .station.sbx { background: var(--z-pinned); }
+  .track .stop.pack { align-self: center; }
+  .track .stop.pack .seg { display: none; }
 
   .empty { padding: 40px 16px; text-align: center; color: var(--text-secondary); background: var(--surface-1); border: 1px dashed var(--axis); border-radius: 14px; }
   .more { margin: 18px 4px 0; font-size: 13px; color: var(--text-secondary); }
@@ -515,7 +639,20 @@
   .sheet .full { background: var(--wash); border-radius: 10px; padding: 12px 14px; margin-bottom: 18px; overflow-wrap: anywhere; }
   .sheet h3 { font-size: 13px; margin: 20px 0 8px; color: var(--text-secondary); font-weight: 600; }
 
-  .edit { border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+  /* 详情分色块：顶上按这站状态上色，「更新这一站」淡紫，「变更记录」灰 */
+  .zone-head { border-radius: 14px; padding: 14px; margin-bottom: 12px; background: var(--idle-tint); }
+  .zone-head[data-state="done"] { background: var(--done-tint); }
+  .zone-head[data-state="review"] { background: var(--review-tint); }
+  .zone-head[data-state="doing"] { background: var(--doing-tint); }
+  .zone-head .full { background: var(--surface-1); margin-bottom: 0; }
+  .zone-head .sheet-top { margin-bottom: 10px; }
+  .edit { border: 1px solid var(--z-pinned-edge); border-radius: 14px; padding: 14px; background: var(--z-pinned); }
+  .edit h3 { color: var(--z-pinned-ink); }
+  .edit .opt { background: var(--surface-1); }
+  .edit textarea { background: var(--surface-1); }
+  .zone-hist { margin-top: 12px; border-radius: 14px; padding: 12px 14px; background: var(--idle-tint); }
+  .zone-hist h3 { margin-top: 0; }
+  .zone-hist .links { margin-top: 10px; }
   .edit h3 { margin-top: 0; }
   .picker { border: 0; padding: 0; margin: 0 0 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; }
   .opt { display: flex; align-items: center; gap: 9px; padding: 9px 10px; border: 1px solid var(--border); border-radius: 10px; cursor: pointer; font-size: 13px; }
@@ -523,10 +660,31 @@
   .opt input { position: absolute; opacity: 0; pointer-events: none; }
   .opt:has(input:checked) { border-color: var(--text-primary); box-shadow: inset 0 0 0 1px var(--text-primary); font-weight: 600; }
   .opt small { display: block; font-weight: 400; font-size: 11px; color: var(--text-secondary); }
-  /* 「我亲手验过了」是勾选框，不是单选卡：把框露出来 */
-  .opt.opt-check { margin: 0 0 12px; }
-  .opt.opt-check input { position: static; opacity: 1; pointer-events: auto; width: 16px; height: 16px; margin: 0; accent-color: var(--good); }
   .opt .dot { box-shadow: none; }
+  /* 状态：电池蓄力（10-12 用户选 B）——五格从左往右，走到的格整格填满、一格比一格深，箭头指着现在在哪 */
+  .picker.flow { display: flex; flex-direction: column; gap: 4px; }
+  .bat-arrows, .bat-lbls { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-right: 9px; text-align: center; }
+  .bat-arrow { font-size: 11px; font-weight: 700; color: var(--good); line-height: 1.2; min-height: 13px; }
+  .bat { display: flex; align-items: center; gap: 3px; }
+  .bat-body { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; padding: 3px; border: 2px solid color-mix(in srgb, var(--text-primary) 40%, transparent); border-radius: 9px; background: var(--surface-1); }
+  .bat-nub { flex: none; width: 5px; height: 14px; border-radius: 0 3px 3px 0; background: color-mix(in srgb, var(--text-primary) 40%, transparent); }
+  .bat-seg { position: relative; height: 22px; border-radius: 4px; background: transparent; cursor: pointer; }
+  .bat-seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .bat-seg:hover { outline: 2px solid var(--axis); }
+  .bat-seg:not(.cur):has(input:checked) { outline: 2px solid var(--text-primary); outline-offset: 1px; } /* 点了别的格才出黑框；现在那格靠箭头和闪 */
+  .bat-seg:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .bat-seg.lv1 { background: #c0dd97; } .bat-seg.lv2 { background: #97c459; } .bat-seg.lv3 { background: #639922; } .bat-seg.lv4 { background: #3b6d11; } .bat-seg.lv5 { background: #27500a; }
+  .bat-seg.cur { animation: segpulse 1.8s ease-in-out infinite; }
+  @keyframes segpulse { 50% { opacity: .6; } }
+  @media (prefers-reduced-motion: reduce) { .bat-seg.cur { animation: none; } }
+  .bat-lbls label { font-size: 12px; color: var(--text-secondary); cursor: pointer; line-height: 1.3; }
+  .bat-lbls label.no { color: var(--muted); }
+  .bat-lbls label.on { color: var(--text-primary); font-weight: 600; }
+  .flow-side { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+  .flow-side-label { font-size: 11.5px; color: var(--muted); margin-right: 2px; }
+  .opt.chip { padding: 2px 9px; gap: 0; border-radius: 6px; font-size: 12px; background: var(--surface-1); }
+  .opt.chip .dot { display: none; }
+  .step-no { flex: none; font-weight: 700; }
   .field-label { display: block; font-size: 12.5px; color: var(--text-secondary); margin-bottom: 5px; }
   textarea { width: 100%; resize: vertical; min-height: 64px; line-height: 1.5; }
   .actions { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
@@ -568,7 +726,7 @@
     .title-row { flex-wrap: wrap; }
     .hd-tools { flex-basis: 100%; }
     .hd-tools .search { flex: 1 1 auto; }
-    .todo-row { grid-template-columns: 70px minmax(0, 1fr) auto; }
+    .todo-row { grid-template-columns: 70px minmax(0, 1fr); }
     .todo-row .proj { display: none; }
     .todo-head .sub { flex-basis: 100%; }
     .scrim:not(.center) { align-items: flex-end; }
@@ -647,7 +805,7 @@ const STATES = {
   done:    { label: "已到站", hint: "做完了" },
   review:  { label: "待验收", hint: "AI 这边做完了，等你验收 / 拍板" },
   doing:   { label: "进行中", hint: "正在做" },
-  todo:    { label: "未到站", hint: "还没开始" },
+  todo:    { label: "未开始", hint: "还没开始" },
   paused:  { label: "暂缓",   hint: "先放着，之后可能重启" },
   dropped: { label: "停运",   hint: "放弃不做了" },
 };
@@ -683,7 +841,17 @@ const BRANCH = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strok
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const md = (d) => (d && d.length >= 10 ? d.slice(5) : d || "");
+// 项目卡的扁平电池（#T167）：十格，按完成比例灌绿，一格比一格深
+const BAT_RAMP = ["#eaf3de", "#d7ebc0", "#c0dd97", "#abd178", "#97c459", "#7dae3e", "#639922", "#4f8419", "#3b6d11", "#27500a"];
+const batMini = (pct) => { const n = Math.round(Math.max(0, Math.min(100, pct)) / 10); return `<div class="bar bat-mini" role="img" aria-label="完成 ${Math.round(pct)}%"><span class="bm-body">${BAT_RAMP.map((c, i) => `<i${i < n ? ` style="background:${c}"` : ""}></i>`).join("")}</span><span class="bm-nub"></span></div>`; };
 const dot = (state, sm) => `<span class="dot${sm ? " sm" : ""}" data-state="${state}">${ICON[state]}</span>`;
+// 详情里「更新这一站」的选项：「已到站」拆成人工 / 自动两种，一眼分得清谁验的
+const PICKS = ["done-me", "done-auto", "review", "doing", "todo", "paused", "dropped"];
+const PICK_TEXT = { todo: ["未开始", "还没开始"], "done-me": ["完成 · 人工验收", "你亲手验过"], "done-auto": ["完成 · 自动验收", "AI 查过结果，替你验了"] };
+const pickOf = (s) => (s.state === "done" ? (s.accept === "auto" ? "done-auto" : "done-me") : s.state);
+const pickLabel = (k) => (PICK_TEXT[k] ? PICK_TEXT[k][0] : STATES[k].label);
+const pickHint = (k) => (PICK_TEXT[k] ? PICK_TEXT[k][1] : STATES[k].hint);
+const pickDot = (k) => (k.startsWith("done-") ? `<span class="dot sm" data-state="done"${k === "done-auto" ? ' data-acc="auto"' : ""}>${ICON.done}</span>` : dot(k, true));
 
 const filters = { state: "all", scope: "active", view: "metro", q: "", pin: false };
 try { Object.assign(filters, JSON.parse(localStorage.getItem("metro-filters-v2") || "{}"), { q: "" }); } catch (e) {}
@@ -778,9 +946,27 @@ function dueInfo(due) {
   if (isNaN(d)) return { cls: "", text: due, key: due };
   const day = (x) => Math.floor(new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime() / 864e5);
   const diff = day(d) - day(new Date());
-  if (diff < 0) return { cls: "late", text: `过期 ${-diff} 天`, key: due };
-  if (diff === 0) return { cls: "today", text: due.length > 10 ? `今天 ${due.slice(11, 16)}` : "今天到点", key: due };
-  return { cls: "", text: `${diff} 天后`, key: due };
+  if (diff < 0) return { cls: "late", text: `过期 ${-diff} 天`, key: due, diff };
+  if (diff === 0) return { cls: "today", text: due.length > 10 ? `今天 ${due.slice(11, 16)}` : "今天到点", key: due, diff };
+  return { cls: "", text: `${diff} 天后`, key: due, diff };
+}
+// 越急越显眼（#T167）：过期 2 天以上最重，过期 1 天次之，今天到橙，还远的变淡
+const urgOf = (due) => (due.diff == null ? 3 : due.diff <= -2 ? 0 : due.diff < 0 ? 1 : due.diff === 0 ? 2 : 3);
+// 项目名小色块：按项目名固定一种浅色
+const PJ_HUES = ["#7F77DD", "#1D9E75", "#D85A30", "#D4537E", "#378ADD", "#BA7517"];
+const pjHue = (name) => PJ_HUES[[...String(name)].reduce((h, c) => (h * 31 + c.codePointAt(0)) >>> 0, 7) % PJ_HUES.length];
+// 大块（传送带、要你做的）都能收起，只留标题一行；记在本机，下次打开照旧
+const LINE_EXTRA_KEY = "metro-line-extra-v1";
+const lineExtraOpen = new Set();
+try { JSON.parse(localStorage.getItem(LINE_EXTRA_KEY) || "[]").forEach((k) => lineExtraOpen.add(k)); } catch (e) {}
+const BOX_FOLD_KEY = "metro-box-fold-v1";
+const boxFold = new Set();
+try { JSON.parse(localStorage.getItem(BOX_FOLD_KEY) || "[]").forEach((k) => boxFold.add(k)); } catch (e) {}
+const boxFoldBtn = (key, label) => foldBtn("data-box-fold", key, !boxFold.has(key), label);
+function toggleBoxFold(key) {
+  boxFold.has(key) ? boxFold.delete(key) : boxFold.add(key);
+  try { localStorage.setItem(BOX_FOLD_KEY, JSON.stringify([...boxFold])); } catch (e) {}
+  key === "belt" ? renderBelt() : renderTodo();
 }
 const TODO_SHOW = 5;
 let todoAll = false;
@@ -793,11 +979,14 @@ function renderTodo() {
     box.innerHTML = `<div class="todo-head"><h2>要你做的</h2></div><div class="todo-empty">没有等你验收的站</div>`;
     return;
   }
+  const head = `<div class="todo-head">${boxFoldBtn("todo", "「要你做的」")}<h2>要你做的</h2><span class="n">${list.length} 件等你验</span></div>`;
+  box.classList.toggle("folded", boxFold.has("todo"));
+  if (boxFold.has("todo")) { box.innerHTML = head; return; }
   const shown = todoAll ? list : list.slice(0, TODO_SHOW);
   const rest = list.length - TODO_SHOW;
-  box.innerHTML = `<div class="todo-head"><h2>要你做的</h2><span class="n">${list.length} 件等你验</span><span class="sub">按到点先后排，点一下跳到线上那一站</span></div>
-    <ol class="todo-list">${shown.map(({ s, due }) => `<li class="todo-row" data-jump="${esc(s.id)}" title="#${esc(s.id)} ${esc(s.title)}">
-      <span class="when ${due.cls}">${esc(due.text)}</span><span class="t">${esc(s.title)}</span><span class="proj">${esc(s.project)}</span><button type="button" class="go" data-jump="${esc(s.id)}">去验收 ›</button></li>`).join("")}</ol>
+  box.innerHTML = `${head}
+    <ol class="todo-list">${shown.map(({ s, due }) => `<li class="todo-row u${urgOf(due)}" data-jump="${esc(s.id)}" title="#${esc(s.id)} ${esc(s.title)}">
+      <span class="when ${due.cls}">${esc(due.text)}</span><span class="t">${esc(s.title)}</span><span class="proj" style="--pj:${pjHue(s.project)}">${esc(s.project)}</span></li>`).join("")}</ol>
     ${rest > 0 ? `<button type="button" class="todo-more" id="todo-more" aria-expanded="${todoAll}">${todoAll ? "收起，只看前 5 件 ▲" : `还有 ${rest} 件 ▼`}</button>` : ""}`;
 }
 
@@ -806,7 +995,8 @@ const BELT = DATA.belt || { overdue: [], askDue: [], bin: [], running: [], revie
 const beltOpen = new Set();
 function fmtLeft(min) {
   const a = Math.abs(min);
-  const s = a < 60 ? `${a} 分钟` : a < 1440 ? `${(Math.round(a / 6) / 10).toString()} 小时` : `${Math.floor(a / 1440)} 天`;
+  const h = Math.floor(a / 60), m = a % 60;
+  const s = a < 60 ? `${a} 分钟` : a < 180 ? `${h} 小时${m ? ` ${m} 分` : ""}` : a < 1440 ? `${Math.round(a / 60)} 小时` : `${Math.floor(a / 1440)} 天`;
   return min < 0 ? `过点 ${s}` : `还剩 ${s}`;
 }
 const hhmm = (ms) => { const d = new Date(ms); return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
@@ -822,6 +1012,13 @@ function beltBucket(x, now) {
   return d <= 0 ? 4 : d === 1 ? 5 : d === 2 ? 6 : 7;
 }
 const BELT_COLS = ["30 分内", "1 小时内", "2 小时内", "3 小时内", "今天", "明天", "后天", "3 天+"];
+// 带圆盘的履带：和进度卡同一款，一圈虚线从左往右走，轮子跟着转
+const CRATE_SVG = '<svg class="crate-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h18v11H3z" fill="currentColor" opacity=".16"/><path d="M3 9h18v11H3zM2 5.5h20V9H2zM8 12v5M12 12v5M16 12v5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+const BT_TRACK = "M34 8H526A20 20 0 0 1 526 48H34A20 20 0 0 1 34 8Z";
+const btBig = (x) => `<g class="bt-spin big"><circle cx="${x}" cy="28" r="15" class="bt-wh" stroke-width="2"/><path d="M${x} 15V41M${x - 13} 28H${x + 13}M${x - 9} 19L${x + 9} 37M${x + 9} 19L${x - 9} 37" class="bt-sk" stroke-width="1.5"/><circle cx="${x}" cy="28" r="4" class="bt-hub"/></g>`;
+const btSmall = (x) => `<g class="bt-spin"><circle cx="${x}" cy="28" r="11" class="bt-wh" stroke-width="2"/><path d="M${x} 18V38M${x - 10} 28H${x + 10}" class="bt-sk" stroke-width="1.5"/></g>`;
+const BELT_SVG = `<svg class="bt-belt" viewBox="0 0 560 56" aria-hidden="true"><path d="${BT_TRACK}" class="bt-trk" stroke-width="9"/><path d="${BT_TRACK}" class="bt-tread" stroke-width="9" stroke-dasharray="9 5"/>`
+  + btBig(34) + btBig(526) + [96, 157, 219, 280, 342, 403, 465].map(btSmall).join("") + "</svg>";
 function renderBelt() {
   const box = $("#belt");
   const now = Date.now();
@@ -835,34 +1032,68 @@ function renderBelt() {
   const queued = BELT.queued.filter((x) => !(x.askAt && x.askAt < now));
   const askLate = [...asks, ...BELT.queued.filter((x) => x.askAt && x.askAt < now)];
   const bx = (x, cls) => `<button type="button" class="bx ${cls}" data-jump="${esc(x.id)}" title="#${esc(x.id)} ${esc(x.project)}｜${esc(x.title)}｜到点 ${esc(String(x.due).replace("T", " "))}${x.status === "review" ? "（验收期）" : ""}">
-      <span class="id">#${esc(x.id)} · ${esc(x.project)}</span><span class="nm">${esc(x.title)}</span><span class="lf">${esc(x.status === "review" && x.left >= 0 ? `验收期${fmtLeft(x.left)}` : fmtLeft(x.left))}${x.left >= 0 && x.left < 1440 && hhmm(x.dueAt) !== "00:00" ? ` · ${hhmm(x.dueAt)}` : ""}</span></button>`;
+      <span class="id">${cls === "run" && x.status === "doing" ? '<span class="spin" aria-hidden="true"></span>' : ""}#${esc(x.id)} · ${esc(x.project)}</span><span class="nm">${esc(x.title)}</span><span class="lf">${esc(x.status === "review" && x.left >= 0 ? `验收期${fmtLeft(x.left)}` : fmtLeft(x.left))}${x.left >= 0 && x.left < 1440 && hhmm(x.dueAt) !== "00:00" ? ` · ${hhmm(x.dueAt)}` : ""}</span></button>`;
   const first = late[0] || on[0];
   const hot = first ? `最急 #${first.id} ${first.title}（${fmtLeft(first.left)}）` : "";
-  const head = `<div class="belt-head"><h2>传送带</h2><span class="hot">${on.length} 站在带上${late.length ? ` · ${late.length} 站过点` : ""}${hot ? ` · ${esc(hot)}` : ""}</span><span class="sub">越靠左越快到点 · 现在 ${hhmm(now)}</span></div>`;
+  const head = `<div class="belt-head">${boxFoldBtn("belt", "「传送带」")}<h2>传送带</h2><span class="hot">${on.length} 站在带上${hot ? ` · ${esc(hot)}` : ""}</span></div>`;
+  box.classList.toggle("folded", boxFold.has("belt"));
+  if (boxFold.has("belt")) { box.innerHTML = head; return; }
   if (!timed.length && !queued.length && !askLate.length) {
     box.innerHTML = head + `<div class="belt-empty">带上没有站：开工的站排了预算、交来验收的站有验收期，才会上带。</div>`;
     return;
   }
   const lateRun = late.filter((x) => x.status !== "review");
   const lateRev = late.filter((x) => x.status === "review");
-  const bin = `<div class="belt-bin${late.length || askLate.length ? " hot" : ""}"><b>到点</b>
-    ${lateRun.length ? `<span>没收尾 ${lateRun.length}</span>${lateRun.map((x) => bx(x, "late")).join("")}` : ""}
-    ${lateRev.length ? `<span>验收筐 ${lateRev.length}</span>${lateRev.map((x) => bx(x, "rev")).join("")}` : ""}
-    ${askLate.length ? `<span>审定过期 ${askLate.length}，按默认开工</span>` : ""}
-    ${!late.length && !askLate.length ? `<span>空的。过点的落这里，不挡后面</span>` : ""}</div>`;
+  // 到点筐只列一行一站（编号 + 站名），每组先露 3 站，多的点开；整张卡不进筐，免得把带子撑高
+  const binList = (key, name, list) => {
+    if (!list.length) return "";
+    const all = beltOpen.has(key);
+    const shown = all ? list : list.slice(0, 3);
+    const rows = shown.map((x) => `<button type="button" class="row" data-jump="${esc(x.id)}" title="#${esc(x.id)} ${esc(x.project)}｜${esc(x.title)}｜${esc(fmtLeft(x.left))}"><span class="id">#${esc(x.id)}</span>${esc(x.title)}</button>`).join("");
+    const more = list.length > 3 ? `<button type="button" class="belt-more" data-belt-more="${key}">${all ? "收起 ▲" : `还有 ${list.length - 3} 项 ▼`}</button>` : "";
+    return `<span class="sec">${name} ${list.length}</span>${rows}${more}`;
+  };
+  // 传送带末端两个箱子：平时只露箱子、名字、件数，点开才列清单
+  const crate = (key, cls, title, n, inner) => {
+    const open = beltOpen.has(key);
+    return `<div class="crate ${cls}${open ? " open" : ""}"><button type="button" class="crate-btn" data-belt-more="${key}" aria-expanded="${open}">${CRATE_SVG}<span class="crate-t">${title}</span><b class="crate-n">${n}</b><span class="crate-arrow" aria-hidden="true">${open ? "▲" : "▼"}</span></button>${open ? `<div class="crate-list">${inner}</div>` : ""}</div>`;
+  };
+  const bin = lateRun.length ? crate("crate-late", "late", "到点没做完", lateRun.length, binList("run", "到点没做完", lateRun)) : ""; // 过了验收期的已在「要你做的」最前，不重复
+  // 成品箱：最近到站的站（像流水线出货口），新的在上；点一下跳到线上那一站
+  const outs = [...byId.values()].filter((s) => s.state === "done" && s.done && !s.lineArchived)
+    .sort((a, b) => String(b.done).localeCompare(String(a.done)) || String(b.id).localeCompare(String(a.id))).slice(0, 8);
+  const outAll = beltOpen.has("out");
+  const outShown = outAll ? outs : outs.slice(0, 3);
+  const outTag = (s) => (s.accept === "auto" ? `<span class="acc acc-auto" title="${ACCEPT.auto.hint}">AI 验</span>` : s.accept === "me" ? `<span class="acc acc-me" title="${ACCEPT.me.hint}">你验</span>` : "");
+  const outInner = `
+    ${outs.length ? "" : `<span class="hint">还没有站到站</span>`}
+    ${outShown.map((s) => `<button type="button" class="row" data-jump="${esc(s.id)}" title="#${esc(s.id)} ${esc(s.project)}｜${esc(s.title)}｜${esc(s.done)} 到站"><span class="nm"><span class="ok">✓ </span>${esc(s.title)}</span><span class="lf">${esc(String(s.done).slice(5))} 到站${outTag(s)}</span></button>`).join("")}
+    ${outs.length > 3 ? `<button type="button" class="belt-more" data-belt-more="out">${outAll ? "收起 ▲" : `还有 ${outs.length - 3} 项 ▼`}</button>` : ""}`;
+  const out = crate("crate-out", "done", "成品箱", outs.length, outInner);
   const cols = BELT_COLS.map(() => []);
   for (const x of on) cols[beltBucket(x, now)].push(x);
-  const colHtml = cols.map((c, i) => {
-    if (!c.length) return "";
+  // 一整条带子：上面一排格子放方块，中间一条不断的履带，下面一排刻度，两排格子宽度一一对齐
+  const boxCols = cols.map((c, i) => {
+    if (!c.length) return `<div class="belt-col slot-empty"></div>`;
     const all = beltOpen.has(i);
     const cap = window.innerWidth < 600 ? 1 : 3; // 手机上每格只露一块，免得把「要你做的」挤到下面
     const shown = all ? c : c.slice(0, cap);
-    const more = c.length > cap ? `<button type="button" class="belt-more" data-belt-more="${i}">${all ? "收起 ▲" : `+${c.length - cap} 站 ▼`}</button>` : "";
-    return `<div class="belt-col"><div class="boxes">${shown.map((x) => bx(x, x.status === "review" ? "rev" : "run")).join("")}${more}</div><div class="tread"></div><div class="lbl${i < 2 ? " soon" : ""}">${BELT_COLS[i]}</div></div>`;
-  }).join("");
-  const qs = [...askLate.map((x) => ({ x, t: "审定过期" })), ...queued.map((x) => ({ x, t: x.ask ? `待审定 ${String(x.ask).slice(5)}` : "" }))];
-  const queue = qs.length ? `<div class="belt-queue">排队（开工才计时）：${qs.map(({ x, t }) => `<span class="q" data-jump="${esc(x.id)}" title="#${esc(x.id)} ${esc(x.project)}｜${esc(x.title)}">#${esc(x.id)} ${esc(x.title)} · ${esc(x.budget)}${t ? ` · ${esc(t)}` : ""}</span>`).join("")}</div>` : "";
-  box.innerHTML = head + `<div class="belt-row">${bin}${colHtml}</div>` + queue;
+    const more = c.length > cap ? `<button type="button" class="belt-more" data-belt-more="${i}">${all ? "收起 ▲" : `+${c.length - cap} 项 ▼`}</button>` : "";
+    return `<div class="belt-col u${i}"><div class="boxes">${shown.map((x) => bx(x, x.status === "review" ? "rev" : "run")).join("")}${more}</div></div>`;
+  }).reverse().join(""); // 左远右近：3 天+ 在最左，30 分内贴着最右的「到点」筐
+  const lblCols = cols.map((c, i) => `<div class="belt-col${c.length ? "" : " slot-empty"}"><div class="lbl${i < 2 && c.length ? " soon" : ""}">${BELT_COLS[i]}</div></div>`).reverse().join("");
+  const colHtml = `<div class="belt-mid"><div class="belt-cols">${boxCols}</div>${BELT_SVG}<div class="belt-cols lbls">${lblCols}</div></div>`;
+  // 待上线：排了「最多花多久」但还没开工的站，开工才计时；拍板期过了的排最前、标红
+  const budgetText = (b) => { const m = String(b || "").match(/^([\d.]+)\s*(h|m)$/i); return m ? `最多 ${m[1]} ${m[2].toLowerCase() === "h" ? "小时" : "分钟"}` : (b ? `最多 ${b}` : ""); };
+  const qs = [...askLate.map((x) => ({ x, t: "你没拍板，按默认做", due: true })), ...queued.map((x) => ({ x, t: x.ask ? `等你拍板 ${String(x.ask).slice(5)}` : "" }))];
+  const inAll = beltOpen.has("in");
+  const inShown = inAll ? qs : qs.slice(0, 3);
+  const inInner = `
+    ${inShown.map(({ x, t, due }) => `<button type="button" class="row" data-jump="${esc(x.id)}" title="#${esc(x.id)} ${esc(x.project)}｜${esc(x.title)}"><span class="nm"><span class="id">#${esc(x.id)}</span>${esc(x.title)}</span><span class="lf${due ? " due" : ""}">${esc([budgetText(x.budget), t].filter(Boolean).join(" · "))}</span></button>`).join("")}
+    ${qs.length > 3 ? `<button type="button" class="belt-more" data-belt-more="in">${inAll ? "收起 ▲" : `还有 ${qs.length - 3} 项 ▼`}</button>` : ""}`;
+  // 左边原料箱
+  const inBox = qs.length ? `<div class="belt-start">${crate("crate-in", `raw${askLate.length ? " hot" : ""}`, "原料箱", qs.length, inInner)}</div>` : "";
+  box.innerHTML = head + `<div class="belt-row">${inBox}${colHtml}<div class="belt-end">${bin}${out}</div></div>`;
 }
 setInterval(renderBelt, 30000);
 
@@ -872,6 +1103,7 @@ function jumpTo(id) {
   if (!s) return;
   const l = lineByName.get(s.project);
   if (l && lineFolded(l)) toggleLineFold(l.name);
+  if (l) lineAllOpen.add(l.name);
   if (l && l.parent && famCollapsed.has(l.parent)) { famCollapsed.delete(l.parent); saveFam(); }
   if (!["all", "open", "review"].includes(filters.state)) filters.state = "all";
   if (filters.view !== "metro") filters.view = "metro";
@@ -907,10 +1139,17 @@ function stopHtml(s, next) {
   const nextAttr = next ? ` data-next="${esc(next)}"` : "";
   const focus = s.pinned || s.state === "review" || s.state === "doing";
   const acc = accOf(s);
-  return `<li class="stop${focus ? " is-focus" : ""}" data-state="${s.state}"${acc ? ` data-acc="${acc}"` : ""}${nextAttr}>
-        <button type="button" class="station" data-id="${esc(s.id)}" aria-label="${esc(s.id)} ${esc(s.title)}，${STATES[s.state].label}${acc ? `（${ACCEPT[acc].label}）` : ""}${s.pinned ? "，已置顶" : ""}">
-          <span class="rail"><span class="seg in"></span><span class="seg out"></span>${dot(s.state)}${s.pinned ? `<span class="pin-mark" title="已置顶">${PIN(true)}</span>` : ""}</span>
-          <span class="st-title">${esc(s.title)}${accTag(s)}</span>
+  // 站点卡片照传送带方块的样子：编号一行、站名一到两行、状态一行，靠左排
+  const due = s.due && s.due !== "none" ? dueInfo(s.due).text : "";
+  const lf = s.state === "review" ? `等你验${due ? ` · ${due}` : ""}`
+    : s.state === "doing" ? `在做${due ? ` · ${due}` : ""}`
+    : s.state === "done" ? `完成${acc ? ` · ${acc === "auto" ? "AI 验" : "你验"}` : ""}`
+    : STATES[s.state].label;
+  return `<li class="stop sbx-stop${focus ? " is-focus" : ""}" data-state="${s.state}"${acc ? ` data-acc="${acc}"` : ""}${nextAttr}>
+        <button type="button" class="station sbx" data-id="${esc(s.id)}" title="${esc(s.title)}" aria-label="${esc(s.id)} ${esc(s.title)}，${STATES[s.state].label}${acc ? `（${ACCEPT[acc].label}）` : ""}${s.pinned ? "，已置顶" : ""}">
+          <span class="sbx-id">${s.state === "doing" ? '<span class="spin" aria-hidden="true"></span>' : ""}#${esc(s.id)}${s.pinned ? `<span class="sbx-pin" title="已置顶">${PIN(true)}</span>` : ""}</span>
+          <span class="sbx-nm">${esc(s.title)}</span>
+          <span class="sbx-lf">${esc(lf)}</span>
         </button></li>`;
 }
 
@@ -918,11 +1157,15 @@ function packAria(run, open) {
   if (open) return `收起这 ${run.length} 站`;
   const nDone = run.filter((s) => s.state === "done").length;
   const nDrop = run.filter((s) => s.state === "dropped").length;
-  const nArch = run.length - nDone - nDrop;
+  const nTodo = run.filter((s) => s.state === "todo").length;
+  const nPause = run.filter((s) => s.state === "paused").length;
+  const nArch = run.length - nDone - nDrop - nTodo - nPause;
   const bits = [];
   const nAuto = run.filter((s) => accOf(s) === "auto").length;
   if (nDone) bits.push(`已到 ${nDone} 站${nAuto ? `（其中自动验收 ${nAuto}）` : ""}`);
   if (nDrop) bits.push(`停运 ${nDrop} 站`);
+  if (nTodo) bits.push(`未开始 ${nTodo} 站`);
+  if (nPause) bits.push(`暂缓 ${nPause} 站`);
   if (nArch) bits.push(`归档 ${nArch} 站`);
   return `${bits.join("、")}，点开查看`;
 }
@@ -951,38 +1194,27 @@ function hashStationId() {
 }
 function omitOnTrack(s) {
   if (s.pinned || s.state === "review" || s.state === "doing") return false;
-  if (s.state === "done" || s.state === "dropped") return true;
+  // 灰色的（未开始、暂缓）也收进「⋯ N」，线上只留要盯的
+  if (s.state === "done" || s.state === "dropped" || s.state === "todo" || s.state === "paused") return true;
   return !!s.lineArchived;
 }
+// 线路上的站排成整齐的格子：
+// 平时只露前几个要盯的站（待验收、在做、置顶），其余（做完、未开始、暂缓……）和多出来的合成末尾一格「+N 项 ▼」，点开按原顺序全排出来
+const lineAllOpen = new Set();
 function trackHtml(l) {
-  const pieces = [];
-  let run = [];
   const collapse = !["done", "auto"].includes(filters.state) && !filters.q;
-  const flush = () => {
-    if (!run.length) return;
-    if (!collapse) run.forEach((s) => pieces.push({ state: s.state, quiet: false, html: (next) => stopHtml(s, next) }));
-    else {
-      const key = runKey(l.name, run);
-      const hid = hashStationId();
-      if (hid && run.some((s) => s.id === hid) && !revealedByHash.has(hid)) {
-        revealedByHash.add(hid);
-        openRuns.add(key);
-      }
-      const open = openRuns.has(key);
-      const kept = run;
-      pieces.push({ state: "quiet", quiet: true, html: () => packHtml(key, kept, open) });
-      if (open) kept.forEach((s) => pieces.push({ state: s.state, quiet: false, html: (next) => stopHtml(s, next) }));
-    }
-    run = [];
-  };
-  for (const s of l.shown) {
-    if (collapse && omitOnTrack(s)) run.push(s);
-    else { flush(); pieces.push({ state: s.state, quiet: false, html: (next) => stopHtml(s, next) }); }
-  }
-  flush();
-  const html = pieces.map((p, i) => p.html(pieces[i + 1] ? pieces[i + 1].state : "")).join("");
-  const quiet = pieces.length > 0 && pieces.every((p) => p.quiet);
-  return { html, quiet };
+  const all = l.shown;
+  if (!collapse) return { html: all.map((s) => stopHtml(s)).join(""), quiet: false };
+  const hid = hashStationId();
+  if (hid && all.some((s) => s.id === hid) && !revealedByHash.has(hid)) { revealedByHash.add(hid); lineAllOpen.add(l.name); }
+  const focus = all.filter((s) => !omitOnTrack(s));
+  const cap = window.innerWidth < 600 ? 2 : 4;
+  const open = lineAllOpen.has(l.name);
+  const more = (n, isOpen) => `<li class="stop more-cell"><button type="button" class="more-btn" data-line-all="${esc(l.name)}" aria-expanded="${isOpen}">${isOpen ? "收起 ▲" : `+${n} 项 ▼`}</button></li>`;
+  if (open) return { html: all.map((s) => stopHtml(s)).join("") + more(0, true), quiet: false };
+  const shown = focus.slice(0, cap);
+  const rest = all.length - shown.length;
+  return { html: shown.map((s) => stopHtml(s)).join("") + (rest > 0 ? more(rest, false) : ""), quiet: !focus.length };
 }
 
 function lineHtml(l) {
@@ -993,6 +1225,9 @@ function lineHtml(l) {
     l.archived ? `<span class="tag">已归档 ${esc(l.archived)}</span>` : !open ? `<span class="pill" data-state="done">${dot("done", true)}全线到站</span>` : "",
     pill("review", l.review), pill("doing", l.doing), pill("todo", l.todo), pill("paused", l.paused), pill("dropped", l.dropped),
   ].filter(Boolean).join("");
+  // 状态个数、项目页、归档平时收起，点「⋯」才露
+  const exOpen = lineExtraOpen.has(l.name);
+  const extraBtn = `<button type="button" class="line-more" data-line-more="${esc(l.name)}" aria-expanded="${exOpen}" title="${exOpen ? "收起" : "看状态个数、项目页"}">${exOpen ? "收起" : "⋯"}</button>`;
   const act = !SERVER ? "" : l.archived
     ? `<button type="button" class="line-act" data-act="restore" data-line="${esc(l.name)}">恢复项目</button>`
     : `<button type="button" class="line-act" data-act="archive" data-line="${esc(l.name)}">归档项目</button>`;
@@ -1003,15 +1238,14 @@ function lineHtml(l) {
   const hid = hashStationId();
   const isFolded = lineFolded(l) && !filters.q && !(hid && l.shown.some((s) => s.id === hid));
   const aria = `${esc(l.name)}：${l.total} 站，已到 ${l.done} 站${l.pinned ? "，已置顶" : ""}`;
-  const title = `<div class="line-title">${foldBtn("data-fold-line", l.name, !isFolded, `「${l.name}」`)}<span class="line-no" title="${l.no} 号线">${l.no}</span><span class="line-name">${esc(l.name)}</span>${pin}</div>`;
+  const title = `<div class="line-title">${foldBtn("data-fold-line", l.name, !isFolded, `「${l.name}」`)}<span class="line-name">${esc(l.name)}</span>${pin}</div>`;
   if (isFolded) {
     return `<section class="line folded"${l.archived ? " data-archived" : ""} aria-label="${aria}，已折起">
     <div class="fold-row">
       ${title}
-      <div class="line-count">已到 <b>${l.done}</b> / ${l.total} 站</div>
-      <div class="bar" role="img" aria-label="到站比例 ${Math.round(pct)}%"><i style="width:${pct}%"></i></div>
-      <div class="line-foot">${foot}</div>
-      ${l.page ? `<div class="line-links"><a href="${l.page}">项目页</a></div>` : ""}
+      <div class="line-count">完成 <b>${l.done}</b> / ${l.total}</div>
+      
+      ${exOpen ? `<div class="line-foot">${foot}</div>${l.page ? `<div class="line-links"><a href="${l.page}">项目页</a></div>` : ""}` : ""}${extraBtn}
     </div>
   </section>`;
   }
@@ -1020,10 +1254,9 @@ function lineHtml(l) {
     <div class="line-head">
       ${title}
       ${l.parent && l.branch ? `<div class="line-branch" title="代码分支：${esc(l.branch)}">${BRANCH}<span>分支 ${esc(l.branch)}</span></div>` : ""}
-      <div class="line-count">已到 <b>${l.done}</b> / ${l.total} 站</div>
-      <div class="bar" role="img" aria-label="到站比例 ${Math.round(pct)}%"><i style="width:${pct}%"></i></div>
-      <div class="line-foot">${foot}</div>
-      ${l.page || act ? `<div class="line-links">${l.page ? `<a href="${l.page}">项目页</a>` : ""}${act}</div>` : ""}
+      <div class="line-count">完成 <b>${l.done}</b> / ${l.total}</div>
+      
+      ${exOpen ? `<div class="line-foot">${foot}</div>${l.page || act ? `<div class="line-links">${l.page ? `<a href="${l.page}">项目页</a>` : ""}${act}</div>` : ""}` : ""}${extraBtn}
     </div>
     <div class="track-wrap" data-line="${esc(l.name)}"><ol class="track${track.quiet ? " is-quiet" : ""}">
       ${track.html}
@@ -1053,9 +1286,9 @@ function famHtml(u) {
       <span class="fam-badge" aria-hidden="true">${FORK}</span>
       <div class="fam-title">
         <div class="fam-name">${esc(u.parent)}<span class="pill">父节点</span></div>
-        <div class="fam-sub">${ls.length} 条支线 · 已到 <b>${done}</b> / ${total} 站</div>
+        <div class="fam-sub">${ls.length} 条支线 · 完成 <b>${done}</b> / ${total}</div>
       </div>
-      <div class="bar" role="img" aria-label="到站比例 ${Math.round(pct)}%"><i style="width:${pct}%"></i></div>
+      
       <div class="fam-pills">${pills}</div>
       <button type="button" class="fam-toggle" data-fam="${esc(u.parent)}" aria-expanded="${!collapsed}">${collapsed ? "展开支线" : "收起支线"}</button>
     </div>
@@ -1090,7 +1323,7 @@ function renderMetro(lines) {
     // 分块折起：只剩标题这一行（点标题行任意处或小三角都能折 / 展）
     const zFolded = folded.zones.has(key) && !filters.q;
     return `<section class="zone" data-zone="${key}"${zFolded ? " data-folded" : ""} aria-label="${title}">
-      <div class="zone-head" data-zone-head="${key}">${foldBtn("data-fold-zone", key, !zFolded, `「${title}」`)}<span class="z-icon" aria-hidden="true">${icon}</span><h2>${title}</h2><span class="z-count">${n} 条</span><span class="z-desc">${zFolded ? "已折起，点这一行展开" : desc}</span></div>
+      <div class="zone-head" data-zone-head="${key}">${foldBtn("data-fold-zone", key, !zFolded, `「${title}」`)}<span class="z-icon" aria-hidden="true">${icon}</span><h2>${title}</h2><span class="z-count">${n} 条</span></div>
       ${us.map((u) => (u.parent ? famHtml(u) : lineHtml(u.lines[0]))).join("")}
     </section>`;
   }).join("");
@@ -1254,15 +1487,28 @@ function closeModal() {
 function editBlock(s) {
   if (!SERVER) return `<div class="readonly-note">这是只读页面。双击看板目录里的「打开地铁图.bat」打开，就能在这里改这一站的状态、写备注。</div>`;
   if (s.lineArchived) return `<div class="readonly-note">「${esc(s.project)}」整条线已归档。要改它的站点，先在线路左侧点「恢复项目」。</div>`;
-  return `<form class="edit" id="edit" data-id="${esc(s.id)}" data-state="${s.state}">
+  return `<form class="edit" id="edit" data-id="${esc(s.id)}" data-state="${s.state}" data-pick="${pickOf(s)}">
     <h3>更新这一站</h3>
-    <fieldset class="picker" aria-label="状态">
-      ${Object.keys(STATES).map((k) => `<label class="opt"><input type="radio" name="st" value="${k}"${k === s.state ? " checked" : ""}>${dot(k, true)}<span>${STATES[k].label}<small>${STATES[k].hint}</small></span></label>`).join("")}
+    <fieldset class="picker flow" aria-label="状态（按流程顺序）">
+      ${(() => {
+        // 电池蓄力（10-12 用户选 B：「加个箭头当前所在 我喜欢b」「改颜色深浅 全填充」）：
+        // ① 未开始 → ② 进行中 → ③ 待验收 → ④ 自动验收 → ⑤ 人工验收，走到的格整格填满、一格比一格深；箭头指着这站现在在哪；暂缓 / 停运是岔路
+        const FLOW = ["todo", "doing", "review", "done-auto", "done-me"];
+        const SHORT = { "done-auto": "自动验收", "done-me": "人工验收" };
+        const now = pickOf(s), at = FLOW.indexOf(now);
+        const radio = (k) => `<input type="radio" name="st" id="st-${k}" value="${k}"${k === now ? " checked" : ""}>`;
+        const tip = (k) => `${esc(pickLabel(k))}：${esc(pickHint(k))}`;
+        const arrows = FLOW.map((k, i) => `<span class="bat-arrow">${i === at ? "▼ 现在" : ""}</span>`).join("");
+        const segs = FLOW.map((k, i) => `<label class="bat-seg${i <= at ? ` lv${i + 1}` : ""}${i === at ? " cur" : ""}" for="st-${k}" title="${tip(k)}">${radio(k)}</label>`).join("");
+        const names = FLOW.map((k, i) => `<label for="st-${k}" class="${k === now ? "on" : ""}${i > at ? " no" : ""}" title="${tip(k)}">${SHORT[k] || pickLabel(k)}</label>`).join("");
+        const chip = (k) => `<label class="opt chip" title="${tip(k)}">${radio(k)}${pickDot(k)}<span>${pickLabel(k)}</span></label>`;
+        return `<div class="bat-arrows">${arrows}</div><div class="bat"><div class="bat-body">${segs}</div><span class="bat-nub"></span></div><div class="bat-lbls">${names}</div>`
+          + `<div class="flow-side"><span class="flow-side-label">岔路</span>${chip("paused")}${chip("dropped")}</div>`;
+      })()}
     </fieldset>
-    ${accOf(s) === "auto" ? `<label class="opt opt-check"><input type="checkbox" name="verified"><span>我亲手验过了<small>这站现在是 <span class="acc acc-auto">自动验收</span>，勾上改成 <span class="acc acc-me">人工验收</span></small></span></label>` : ""}
-    <label class="field-label" for="note">备注（可不填；不改状态、只写备注也可以）</label>
+    <label class="field-label" for="note">备注</label>
     <textarea id="note" name="note" rows="3" maxlength="500" placeholder="例如：已在真机上验过 / 方向变了，不做了 / 卡在等运维"></textarea>
-    <div class="actions"><button type="submit" class="btn primary" disabled>提交</button><span class="hint" id="edit-hint">选一个新状态，或写点备注</span></div>
+    <div class="actions"><button type="submit" class="btn primary" disabled>提交</button><span class="hint" id="edit-hint"></span></div>
     <div class="err" id="edit-err" hidden></div>
   </form>`;
 }
@@ -1270,34 +1516,24 @@ function editBlock(s) {
 function openSheet(id, { focusEdit = false } = {}) {
   const s = byId.get(id);
   if (!s) return;
-  const row = (k, v) => (v ? `<dt>${k}</dt><dd>${esc(v)}</dd>` : "");
   const hist = s.history && s.history.length
-    ? `<h3>变更记录</h3><ul class="hist">${s.history.map((h) => `<li><span class="when">${esc(h.at)}</span> · ${esc(h.change)}${h.note ? `<span class="note">${esc(h.note)}</span>` : ""}</li>`).join("")}</ul>`
+    ? `<h3>变更记录</h3><ul class="hist">${s.history.map((h) => `<li><span class="when">${esc(h.at)}</span> · ${esc(h.change)}${h.note ? `<span class="note">${esc(String(h.note).replace(/^\[[^\]]+\]\s*/, ""))}</span>` : ""}</li>`).join("")}</ul>`
     : "";
   openModal(`<aside class="sheet" role="dialog" aria-modal="true" aria-label="需求详情">
-    <div class="sheet-top"><span class="state">${dot(s.state)}${STATES[s.state].label}${accTag(s)}</span>
+    <section class="zone-head" data-state="${s.state}">
+    <div class="sheet-top"><span class="state">${s.state === "done" ? pickDot(pickOf(s)) : dot(s.state)}${s.state === "done" ? (s.accept ? pickLabel(pickOf(s)) : "完成") : pickLabel(s.state)}</span>
       <span style="display:inline-flex;gap:8px;align-items:center">${SERVER
         ? `<button type="button" class="btn" data-pin-task="${esc(s.id)}" aria-pressed="${!!s.pinned}" style="display:inline-flex;align-items:center;gap:6px"><span style="width:14px;display:inline-grid">${PIN(s.pinned)}</span>${s.pinned ? "取消置顶" : "置顶这一站"}</button>`
         : s.pinned ? `<span class="tag"><span style="width:12px;display:inline-grid">${PIN(true)}</span>已置顶</span>` : ""}
       <button type="button" class="btn" data-close>关闭</button></span></div>
     <h2>${esc(s.title)}</h2>
-    <div class="sub">#${esc(s.id)} · ${s.lineNo} 号线 ${esc(s.project)}</div>
+    <div class="sub">#${esc(s.id)} · ${esc(s.project)}</div>
     <div class="full">${esc(s.text)}</div>
+    </section>
     ${editBlock(s)}
-    <h3>这一站的信息</h3>
-    <dl class="kv">
-      ${row("优先级", s.priority)}
-      ${row("谁来做", EXEC[s.exec] || "")}
-      ${row("提出日期", s.created)}
-      ${row("到站日期", s.done)}
-      ${row("验收方式", accOf(s) ? `${ACCEPT[accOf(s)].label}：${ACCEPT[accOf(s)].hint}` : "")}
-      ${row("暂缓日期", s.paused)}
-      ${row("归档日期", s.archived)}
-      ${row("截止日", s.due && s.due !== "none" ? s.due : "")}
-      ${row("记录位置", s.source)}
-    </dl>
-    ${hist}
-    ${s.linePage ? `<div class="links"><a href="${s.linePage}">打开「${esc(s.project)}」项目页</a>（现状、下一步、待你验收、进展日志）</div>` : ""}
+    ${/* 优先级、谁来做、日期、记录位置这些只留在台账里给 AI 参考，页面不展示 */ ""}
+    ${hist || s.linePage ? `<section class="zone-hist">${hist}
+    ${s.linePage ? `<div class="links"><a href="${s.linePage}">打开「${esc(s.project)}」项目页</a></div>` : ""}</section>` : ""}
   </aside>`);
   const form = $("#edit");
   if (form) wireEdit(form);
@@ -1307,12 +1543,12 @@ function openSheet(id, { focusEdit = false } = {}) {
 function wireEdit(form) {
   const btn = form.querySelector("button[type=submit]");
   const hint = $("#edit-hint"), err = $("#edit-err");
-  const current = form.dataset.state;
+  const current = form.dataset.pick;
   const refresh = () => {
     const st = form.st.value, note = form.note.value.trim();
-    const verified = !!(form.verified && form.verified.checked && st === "done");
-    btn.disabled = st === current && !note && !verified;
-    hint.textContent = st !== current ? `${STATES[current].label} → ${STATES[st].label}${st === "done" ? "（人工验收）" : ""}` : verified ? "自动验收 → 人工验收" : note ? "只记一条备注，状态不变" : "选一个新状态，或写点备注";
+    btn.disabled = st === current && !note;
+    form.querySelectorAll(".bat-lbls label").forEach((l) => l.classList.toggle("on", l.htmlFor === `st-${st}`));
+    hint.textContent = st !== current ? `${pickLabel(current)} → ${pickLabel(st)}` : note ? "只记一条备注，状态不变" : "";
   };
   form.addEventListener("input", refresh);
   form.addEventListener("submit", async (e) => {
@@ -1320,11 +1556,11 @@ function wireEdit(form) {
     btn.disabled = true; err.hidden = true; hint.textContent = "正在写入台账…";
     try {
       const st = form.st.value;
-      // 你在这里把一站点成「已到站」，或勾「我亲手验过了」= 人工验收
-      const verified = !!(form.verified && form.verified.checked);
-      const accept = st === "done" && (current !== "done" || verified) ? "me" : "";
-      const res = await api("/api/set-status", { id: form.dataset.id, status: st, note: form.note.value, accept });
-      reloadWith(st !== current ? `#${form.dataset.id} 已更新：${STATES[current].label} → ${STATES[st].label}` : accept ? `#${form.dataset.id} 已改成人工验收` : `#${form.dataset.id} 已记下备注`, res);
+      // 「完成 · 人工验收」= 你亲手验过；「完成 · 自动验收」= AI 替你验的（10-12 用户：已到站要分人工 / 自动）
+      const status = st.startsWith("done-") ? "done" : st;
+      const accept = st === "done-me" ? "me" : st === "done-auto" ? "auto" : "";
+      const res = await api("/api/set-status", { id: form.dataset.id, status, note: form.note.value, accept });
+      reloadWith(st !== current ? `#${form.dataset.id} 已更新：${pickLabel(current)} → ${pickLabel(st)}` : `#${form.dataset.id} 已记下备注`, res);
     } catch (ex) {
       err.textContent = ex.message; err.hidden = false; refresh();
     }
@@ -1394,12 +1630,14 @@ $("#f-toggle").addEventListener("click", () => {
   renderHeader();
 });
 $("#belt").addEventListener("click", (e) => {
+  if (e.target.closest("[data-box-fold]")) return toggleBoxFold("belt");
   const more = e.target.closest("[data-belt-more]");
-  if (more) { const i = +more.dataset.beltMore; beltOpen.has(i) ? beltOpen.delete(i) : beltOpen.add(i); return renderBelt(); }
+  if (more) { const k = more.dataset.beltMore, i = /^\d+$/.test(k) ? +k : k; beltOpen.has(i) ? beltOpen.delete(i) : beltOpen.add(i); return renderBelt(); }
   const b = e.target.closest("[data-jump]");
   if (b) jumpTo(b.dataset.jump);
 });
 $("#todo").addEventListener("click", (e) => {
+  if (e.target.closest("[data-box-fold]")) return toggleBoxFold("todo");
   if (e.target.closest("#todo-more")) { todoAll = !todoAll; return renderTodo(); }
   const row = e.target.closest("[data-jump]");
   if (row) jumpTo(row.dataset.jump);
@@ -1411,6 +1649,19 @@ view.addEventListener("mouseout", (e) => { if (e.target.closest(".station")) hid
 view.addEventListener("focusin", (e) => { const el = e.target.closest(".station"); if (el) showTip(el); });
 view.addEventListener("focusout", hideTip);
 view.addEventListener("click", (e) => {
+  const lineAll = e.target.closest("[data-line-all]");
+  if (lineAll) {
+    const n = lineAll.dataset.lineAll;
+    lineAllOpen.has(n) ? lineAllOpen.delete(n) : lineAllOpen.add(n);
+    return render();
+  }
+  const lineMore = e.target.closest("[data-line-more]");
+  if (lineMore) {
+    const n = lineMore.dataset.lineMore;
+    lineExtraOpen.has(n) ? lineExtraOpen.delete(n) : lineExtraOpen.add(n);
+    try { localStorage.setItem(LINE_EXTRA_KEY, JSON.stringify([...lineExtraOpen])); } catch (err) {}
+    return render();
+  }
   const foldLine = e.target.closest("[data-fold-line]");
   if (foldLine) {
     toggleLineFold(foldLine.dataset.foldLine);
@@ -1478,9 +1729,7 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-$("#meta").textContent = SERVER
-  ? `数据来自 TODO.md 与 ARCHIVE.md（台账更新于 ${DATA.ledgerUpdated || "—"}）· 读取于 ${DATA.generatedAt.slice(11)} · 点一站（或右键）可以改状态、写备注；线路左侧可以归档整个项目`
-  : `数据来自 TODO.md 与 ARCHIVE.md（台账更新于 ${DATA.ledgerUpdated || "—"}）· 本页生成于 ${DATA.generatedAt} · 这是只读快照；双击「打开地铁图.bat」打开的版本可以改状态、归档项目`;
+$("#meta").textContent = ""; // 页脚「数据来自 TODO.md…」不展示（#T169）
 if (SERVER && (SERVER.stale || SERVER.libError)) {
   const warn = document.createElement("div");
   warn.className = "meta-warn";

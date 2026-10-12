@@ -92,8 +92,8 @@ function readJson(req) {
 }
 
 const OPS = {
-  // 你在线路图上把一站点成「已到站」或勾「我亲手验过了」，页面带 accept: 'me' = 人工验收
-  '/api/set-status': (b) => lib.applyToDisk('set-status', { id: String(b.id || ''), status: String(b.status || ''), note: String(b.note || ''), accept: b.status === 'done' && b.accept === 'me' ? 'me' : '' }, ROOT),
+  // 你在线路图上选「完成 · 人工验收」带 accept: 'me'，选「完成 · 自动验收」带 accept: 'auto'（10-12）
+  '/api/set-status': (b) => lib.applyToDisk('set-status', { id: String(b.id || ''), status: String(b.status || ''), note: String(b.note || ''), accept: b.status === 'done' && ['me', 'auto'].includes(b.accept) ? b.accept : '' }, ROOT),
   '/api/archive-project': (b) => lib.applyToDisk('archive-project', { name: String(b.name || ''), note: String(b.note || ''), undoneAs: b.undoneAs === 'done' ? 'done' : 'dropped' }, ROOT),
   '/api/restore-project': (b) => lib.applyToDisk('restore-project', { name: String(b.name || ''), note: String(b.note || '') }, ROOT),
   '/api/pin': (b) => {

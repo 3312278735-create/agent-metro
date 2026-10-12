@@ -7,7 +7,7 @@
 - `PROTOCOL.md`：上报 / 派发协议。派出去的 worker 和其他 AI 工具都按它办事；你自己改 `TODO.md` 时也遵守它。
 - `ARCHIVE.md`：归档。`HISTORY.md`：站点变更记录，用户在线路图上每做一次操作就自动追加一行（最新在上）——**会话开始时先读它的新条目**，据此更新相关项目页。不要手改它。
 - **需求线路图**：每个项目一条线、每个需求一站，到站标绿。用户双击 `打开地铁图.bat` → 启动 `tools/board-server.js`（只监听 127.0.0.1:47615）→ 每次刷新都现读台账。`metro.html` 是只读静态快照（`node tools/build-metro.js` 生成），不要手改；样式改 `tools/metro-template.html`（先读 `tools/线路图设计.md`），取数改 `tools/build-metro.js`，写台账的逻辑全在 `tools/ledger.js`。
-- 改站点状态 / 归档项目用同一套代码：`node tools/ledger.js set-status T005 done "备注"`、`archive-project <项目名>`、`restore-project <项目名>`、`set-budget T0xx 1h`、`set-due T0xx +1h`、`set-ask T0xx <日期>`。它会备份、保持格式、记 `HISTORY.md`。
+- 开新站用 `node tools/ledger.js add <项目名> "<站的文字>" [--budget 1h]`（自动挑空号，别手写任务行）。改站点状态 / 归档项目用同一套代码：`node tools/ledger.js set-status T005 done "备注"`、`archive-project <项目名>`、`restore-project <项目名>`、`set-budget T0xx 1h`、`set-due T0xx +1h`、`set-ask T0xx <日期>`。它会备份、保持格式、记 `HISTORY.md`。
 - `pins.json`：用户置顶的线路和站点，是「现在最关心这些」的信号。用户说「推进置顶的」时读它。代为置顶用 `node tools/ledger.js pin|unpin task T005`、`pin|unpin project <项目名>`，不要手写 JSON。
 - **停运**（放弃不做）：任务行在 `ARCHIVE.md` 的「## 未完成即归档」里，`status:archived` 且没有 `done:`。
 - 站名取任务文字里「——」「：」之前的主干，所以**任务行开头那半句要能单独看懂**。
