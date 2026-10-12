@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>需求线路图</title>
+<!-- 本页由 tools/build-metro.js 从 TODO.md + ARCHIVE.md + HISTORY.md 生成。不要手改 metro.html，要改样式改 tools/metro-template.html。 -->
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f2f3f5;
+    --surface-1: #ffffff;
+    --head-bg: #f7f8f9;
+    --text-primary: #111318;
+    --text-secondary: #4d515a;
+    --muted: #8b8f97;
+    --grid: #e2e4e8;
+    --axis: #c0c4cb;
+    --border: rgba(17, 19, 24, .10);
+    --wash: rgba(17, 19, 24, .05);
+    --good: #0ca30c;
+    --accent: #2a78d6;
+    --review: #d98e04;
+    --on-review: #1b1400;
+    --critical: #d03b3b;
+    --on-mark: #ffffff;
+    --badge-bg: #111318;
+    --badge-ink: #ffffff;
+    --shadow: 0 1px 2px rgba(17, 19, 24, .05), 0 8px 24px rgba(17, 19, 24, .07);
+    --card-shadow: 0 1px 2px rgba(17, 19, 24, .06);
+    /* 状态的浅底 + 深字：统计块、线路左侧、站名下面的小标签共用 */
+    --done-tint: #e6f5e8;   --done-ink: #0b7318;
+    --review-tint: #fdf0d6; --review-ink: #845300;
+    --doing-tint: #e3edfc;  --doing-ink: #1a5bb0;
+    --idle-tint: #eceef1;   --idle-ink: #4d515a;
+    /* 功能分区的底色：总览 / 置顶 / 还有站没到 / 全线到站 / 已归档，各一种 */
+    --z-overview: #e9eefb; --z-overview-edge: #d5def4; --z-overview-ink: #3450a8;
+    --z-pinned: #f0ebfb;   --z-pinned-edge: #ddd3f4;   --z-pinned-ink: #6443c2;
+    --z-open: #e4f2f5;     --z-open-edge: #cce3e8;     --z-open-ink: #17707f;
+    --z-done: #e8f4ea;     --z-done-edge: #d0e7d4;     --z-done-ink: #1f7a2e;
+    --z-archived: #ececec; --z-archived-edge: #dcdcdc; --z-archived-ink: #5f6268;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --page: #0e0f11;
+      --surface-1: #1b1c1f;
+      --head-bg: #222327;
+      --text-primary: #f3f4f6;
+      --text-secondary: #b9bcc3;
+      --muted: #868a92;
+      --grid: #2d2f33;
+      --axis: #464950;
+      --border: rgba(255, 255, 255, .10);
+      --wash: rgba(255, 255, 255, .06);
+      --good: #0ca30c;
+      --accent: #3987e5;
+      --review: #e6a23c;
+      --on-review: #1b1400;
+      --critical: #e66767;
+      --on-mark: #ffffff;
+      --badge-bg: #f3f4f6;
+      --badge-ink: #0e0f11;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
+      --card-shadow: 0 1px 2px rgba(0, 0, 0, .5);
+      --done-tint: rgba(12, 163, 12, .16);   --done-ink: #6fd46f;
+      --review-tint: rgba(230, 162, 60, .17); --review-ink: #f1bb66;
+      --doing-tint: rgba(57, 135, 229, .18);  --doing-ink: #86b6f2;
+      --idle-tint: rgba(255, 255, 255, .07);  --idle-ink: #b9bcc3;
+      --z-overview: #161d2e; --z-overview-edge: #243150; --z-overview-ink: #9db2ee;
+      --z-pinned: #1d1830;   --z-pinned-edge: #2e2650;   --z-pinned-ink: #b9a4f2;
+      --z-open: #12242a;     --z-open-edge: #1d3a42;     --z-open-ink: #7fcad6;
+      --z-done: #13241a;     --z-done-edge: #1f3b28;     --z-done-ink: #7fd08d;
+      --z-archived: #1a1a1b; --z-archived-edge: #2a2a2c; --z-archived-ink: #a2a5ab;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #0e0f11;
+    --surface-1: #1b1c1f;
+    --head-bg: #222327;
+    --text-primary: #f3f4f6;
+    --text-secondary: #b9bcc3;
+    --muted: #868a92;
+    --grid: #2d2f33;
+    --axis: #464950;
+    --border: rgba(255, 255, 255, .10);
+    --wash: rgba(255, 255, 255, .06);
+    --good: #0ca30c;
+    --accent: #3987e5;
+    --review: #e6a23c;
+    --on-review: #1b1400;
+    --critical: #e66767;
+    --on-mark: #ffffff;
+    --badge-bg: #f3f4f6;
+    --badge-ink: #0e0f11;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
+    --card-shadow: 0 1px 2px rgba(0, 0, 0, .5);
+    --done-tint: rgba(12, 163, 12, .16);   --done-ink: #6fd46f;
+    --review-tint: rgba(230, 162, 60, .17); --review-ink: #f1bb66;
+    --doing-tint: rgba(57, 135, 229, .18);  --doing-ink: #86b6f2;
+    --idle-tint: rgba(255, 255, 255, .07);  --idle-ink: #b9bcc3;
+    --z-overview: #161d2e; --z-overview-edge: #243150; --z-overview-ink: #9db2ee;
+    --z-pinned: #1d1830;   --z-pinned-edge: #2e2650;   --z-pinned-ink: #b9a4f2;
+    --z-open: #12242a;     --z-open-edge: #1d3a42;     --z-open-ink: #7fcad6;
+    --z-done: #13241a;     --z-done-edge: #1f3b28;     --z-done-ink: #7fd08d;
+    --z-archived: #1a1a1b; --z-archived-edge: #2a2a2c; --z-archived-ink: #a2a5ab;
+  }
+
+  * { box-sizing: border-box; }
+  /* 作者样式里的 display 会盖掉 hidden 属性，这里兜住（遮罩层、提示框都靠 hidden 开关） */
+  [hidden] { display: none !important; }
+  html, body { margin: 0; }
+  body {
+    background: var(--page);
+    color: var(--text-primary);
+    font: 14px/1.5 system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 24px 16px 64px; }
+
+  /* 标题区 */
+  header { padding: 0 4px; }
+  .title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 10px; }
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .logo { flex: none; width: 40px; height: 40px; border-radius: 12px; background: var(--badge-bg); display: grid; place-items: center; }
+  .logo svg { width: 28px; height: 28px; display: block; }
+  .logo .l-track { stroke: var(--badge-ink); opacity: .45; }
+  header h1 { font-size: 26px; line-height: 1.2; margin: 0; letter-spacing: .01em; }
+  header p { margin: 0; color: var(--text-secondary); max-width: 92ch; }
+  .meta { margin-top: 6px; font-size: 12px; color: var(--muted); }
+  .meta-warn { margin-top: 6px; font-size: 12px; font-weight: 600; color: var(--text-primary); }
+  .refresh-btn { flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; background: var(--surface-1); }
+  .refresh-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .refresh-btn.busy svg { animation: spin .9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .refresh-btn.busy svg { animation: none; } }
+
+  /* 功能分区：同一块底色里的东西是一组（总览、筛选、每一类线路各一块） */
+  .zone { border: 1px solid transparent; border-radius: 18px; padding: 16px; margin: 16px 0; --z-ink: var(--text-secondary); }
+  .zone[data-zone="pinned"]   { background: var(--z-pinned);   border-color: var(--z-pinned-edge);   --z-ink: var(--z-pinned-ink); }
+  .zone[data-zone="open"]     { background: var(--z-open);     border-color: var(--z-open-edge);     --z-ink: var(--z-open-ink); }
+  .zone[data-zone="done"]     { background: var(--z-done);     border-color: var(--z-done-edge);     --z-ink: var(--z-done-ink); }
+  .zone[data-zone="archived"] { background: var(--z-archived); border-color: var(--z-archived-edge); --z-ink: var(--z-archived-ink); }
+  .zone-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0 2px 12px; }
+  .zone-head h2 { margin: 0; font-size: 15px; line-height: 1.3; font-weight: 700; color: var(--text-primary); }
+  .z-icon { flex: none; width: 28px; height: 28px; border-radius: 8px; display: inline-grid; place-items: center; background: var(--surface-1); color: var(--z-ink); box-shadow: var(--card-shadow); }
+  .z-icon svg { width: 16px; height: 16px; display: block; }
+  .z-count { font-size: 12px; font-weight: 700; padding: 1px 9px; border-radius: 999px; background: var(--surface-1); color: var(--z-ink); font-variant-numeric: tabular-nums; }
+  .z-desc { font-size: 12.5px; color: var(--text-secondary); }
+
+  /* 筛选面板：点页头「筛选」才展开 */
+  .toolbar { background: var(--surface-1); border-color: var(--border); box-shadow: var(--card-shadow); padding: 10px 12px; margin-top: 10px; }
+
+  /* 页头：标题旁两个数，右边搜索框和「筛选」 */
+  .hd-nums { display: inline-flex; align-items: baseline; gap: 10px; font-size: 14px; font-weight: 600; white-space: nowrap; }
+  .hd-nums .n-rev { color: var(--review-ink); }
+  .hd-nums .n-doing { color: var(--doing-ink); }
+  .hd-tools { display: flex; align-items: center; gap: 8px; flex: 1 1 auto; justify-content: flex-end; min-width: 0; }
+  .hd-tools .search { margin-left: 0; }
+  .chip .caret { font-size: 10px; opacity: .7; }
+  .about { flex-basis: 100%; padding-top: 8px; border-top: 1px solid var(--grid); }
+  .about p { margin: 0; font-size: 12.5px; color: var(--text-secondary); }
+
+  /* 要你做的：等你验收的站按到点先后排，点一下跳到线上那一站 */
+  .todo-box { margin: 16px 0; background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--card-shadow); overflow: hidden; }
+  .todo-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; padding: 11px 16px; border-bottom: 1px solid var(--grid); }
+  .todo-head h2 { margin: 0; font-size: 15px; white-space: nowrap; }
+  .todo-head .n { font-size: 13px; font-weight: 700; color: var(--review-ink); }
+  .todo-head .sub { font-size: 12.5px; color: var(--muted); }
+  .todo-list { list-style: none; margin: 0; padding: 0; }
+  .todo-row { display: grid; grid-template-columns: 84px minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 8px 16px; border-bottom: 1px solid var(--grid); cursor: pointer; }
+  .todo-row:hover { background: var(--wash); }
+  .todo-row .when { font-size: 12px; font-weight: 600; text-align: center; border-radius: 6px; padding: 1px 6px; background: var(--idle-tint); color: var(--idle-ink); white-space: nowrap; }
+  .todo-row .when.late { background: color-mix(in srgb, var(--critical) 14%, var(--surface-1)); color: var(--critical); }
+  .todo-row .when.today { background: var(--review-tint); color: var(--review-ink); }
+  .todo-row .t { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .todo-row .proj { font-size: 12px; color: var(--text-secondary); background: var(--wash); border-radius: 6px; padding: 1px 7px; white-space: nowrap; }
+  .todo-row .go { appearance: none; border: 0; background: none; padding: 0; font: inherit; font-size: 12.5px; color: var(--review-ink); cursor: pointer; white-space: nowrap; }
+  .todo-more { appearance: none; display: block; width: 100%; text-align: left; border: 0; background: var(--head-bg); padding: 8px 16px; font: inherit; font-size: 13px; color: var(--text-secondary); cursor: pointer; }
+  .todo-more:hover { color: var(--text-primary); }
+  .todo-empty { padding: 10px 16px; font-size: 13px; color: var(--done-ink); }
+  .todo-list .todo-row:last-child { border-bottom: 0; }
+  /* 传送带（#T122）：有到点的站排在带上，越靠左越快到点；最左「到点」筐收过点的；没开工的在下面排队写预算。倒计时页面自己走 */
+  .belt-box { margin: 16px 0 0; background: var(--z-open); border: 1px solid var(--z-open-edge); border-radius: 14px; box-shadow: var(--card-shadow); overflow: hidden; }
+  .belt-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; padding: 10px 16px; }
+  .belt-head h2 { margin: 0; font-size: 15px; color: var(--z-open-ink); white-space: nowrap; }
+  .belt-head .hot { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .belt-head .sub { font-size: 12.5px; color: var(--muted); margin-left: auto; }
+  .belt-row { display: flex; flex-wrap: wrap; gap: 10px 4px; padding: 0 12px 10px; align-items: stretch; }
+  .belt-col { flex: 1 1 120px; min-width: 112px; max-width: 220px; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; }
+  .belt-col .boxes { display: flex; flex-direction: column-reverse; gap: 4px; padding: 0 3px; }
+  .belt-col .tread { height: 12px; border-radius: 6px; background: repeating-linear-gradient(90deg, var(--axis) 0 9px, transparent 9px 14px), var(--grid); background-size: 14px 100%; animation: tread 1.2s linear infinite; }
+  @keyframes tread { from { background-position: 0 0; } to { background-position: -14px 0; } }
+  @media (prefers-reduced-motion: reduce) { .belt-col .tread { animation: none; } }
+  .belt-col .lbl { font-size: 11.5px; text-align: center; color: var(--muted); line-height: 1.3; }
+  .belt-col .lbl.soon { color: var(--critical); font-weight: 600; }
+  .belt-bin { flex: 0 1 150px; min-width: 120px; border: 1px dashed var(--axis); border-radius: 10px; padding: 6px 8px; font-size: 12.5px; color: var(--text-secondary); background: var(--surface-1); display: flex; flex-direction: column; gap: 4px; }
+  .belt-bin b { color: var(--text-primary); font-size: 13px; }
+  .belt-bin.hot { border-color: var(--critical); }
+  .belt-bin .bx { border-style: solid; }
+  .bx { appearance: none; text-align: left; font: inherit; border: 1px solid var(--border); border-radius: 8px; padding: 4px 7px; cursor: pointer; background: var(--surface-1); color: var(--text-primary); display: grid; gap: 1px; }
+  .bx:hover { filter: brightness(.97); }
+  .bx .id { font-size: 11px; font-weight: 700; color: var(--muted); }
+  .bx .nm { font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bx .lf { font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
+  .bx.run { background: var(--doing-tint); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+  .bx.run .id { color: var(--doing-ink); }
+  .bx.rev { background: var(--review-tint); border-color: color-mix(in srgb, var(--review) 50%, transparent); }
+  .bx.rev .id { color: var(--review-ink); }
+  .bx.late { background: color-mix(in srgb, var(--critical) 12%, var(--surface-1)); border-color: color-mix(in srgb, var(--critical) 50%, transparent); }
+  .bx.late .id, .bx.late .lf { color: var(--critical); }
+  .belt-more { appearance: none; border: 0; background: none; font: inherit; font-size: 11.5px; color: var(--muted); text-align: center; cursor: pointer; }
+  .belt-queue { padding: 8px 16px 10px; border-top: 1px solid var(--z-open-edge); font-size: 12.5px; color: var(--text-secondary); }
+  .belt-queue .q { display: inline-block; margin: 2px 8px 2px 0; padding: 1px 7px; border: 1px dashed var(--axis); border-radius: 6px; background: var(--surface-1); cursor: pointer; }
+  .belt-empty { padding: 0 16px 12px; font-size: 13px; color: var(--text-secondary); }
+  /* 从「要你做的」跳过来的那一站闪两下 */
+  @keyframes flash { 0% { box-shadow: 0 0 0 0 var(--review); } 40% { box-shadow: 0 0 0 4px var(--review); } 100% { box-shadow: 0 0 0 0 transparent; } }
+  .station.flash { animation: flash 1.2s ease-out 2; }
+  @media (prefers-reduced-motion: reduce) { .station.flash { animation: none; outline: 3px solid var(--review); } }
+
+  /* 过滤行 */
+  .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+  .f-group { display: inline-flex; align-items: center; gap: 8px; }
+  .f-label { font-size: 12px; font-weight: 600; color: var(--muted); }
+  .seg-ctl { display: inline-flex; background: var(--wash); border-radius: 10px; padding: 3px; }
+  .seg-ctl button {
+    appearance: none; border: 0; background: transparent; color: var(--text-secondary);
+    font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+  }
+  .seg-ctl button:hover { color: var(--text-primary); }
+  .seg-ctl button[aria-pressed="true"] { background: var(--surface-1); color: var(--text-primary); box-shadow: 0 1px 2px rgba(11,11,11,.14); font-weight: 600; }
+  .search, textarea, .text-input {
+    font: inherit; font-size: 13px; color: var(--text-primary);
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px;
+  }
+  .search { flex: 1 1 200px; min-width: 160px; max-width: 320px; margin-left: auto; background: var(--wash); border-color: transparent; }
+  .search:focus { background: var(--surface-1); border-color: var(--border); }
+  .search::placeholder, textarea::placeholder { color: var(--muted); }
+  button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible,
+  .opt:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* 站点圆点（图例、统计块、线路、面板共用） */
+  .dot {
+    position: relative; z-index: 1; flex: none;
+    width: 22px; height: 22px; border-radius: 50%;
+    display: inline-grid; place-items: center;
+    background: var(--surface-1); border: 2px solid var(--muted);
+    box-shadow: 0 0 0 3px var(--surface-1);
+  }
+  .dot svg { width: 12px; height: 12px; display: block; }
+  .dot[data-state="done"] { background: var(--good); border-color: var(--good); color: var(--on-mark); }
+  .dot[data-state="doing"] { background: var(--accent); border-color: var(--accent); color: var(--on-mark); }
+  .dot[data-state="review"] { background: var(--review); border-color: var(--review); color: var(--on-review); }
+  .dot[data-state="todo"] { color: transparent; }
+  .dot[data-state="paused"] { border-style: dashed; color: var(--text-secondary); }
+  .dot[data-state="dropped"] { background: var(--grid); border-color: var(--muted); color: var(--text-secondary); }
+  .dot.sm { width: 16px; height: 16px; box-shadow: none; }
+  .dot.sm svg { width: 9px; height: 9px; }
+  @media (prefers-reduced-motion: no-preference) {
+    .station .dot[data-state="doing"]::after, .station .dot[data-state="review"]::after {
+      content: ""; position: absolute; inset: -6px; border-radius: 50%;
+      border: 2px solid var(--accent); opacity: 0; animation: pulse 2.4s ease-out infinite;
+    }
+    .station .dot[data-state="review"]::after { border-color: var(--review); }
+    @keyframes pulse { 0% { transform: scale(.7); opacity: .55; } 100% { transform: scale(1.25); opacity: 0; } }
+  }
+
+  /* 状态小标签（线路左侧的计数、站名下面的状态） */
+  .pill {
+    display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+    font-size: 11.5px; font-weight: 600; line-height: 1.6; padding: 0 8px; border-radius: 999px;
+    background: var(--idle-tint); color: var(--idle-ink);
+  }
+  .pill[data-state="done"] { background: var(--done-tint); color: var(--done-ink); }
+  .pill[data-state="review"] { background: var(--review-tint); color: var(--review-ink); }
+  .pill[data-state="doing"] { background: var(--doing-tint); color: var(--doing-ink); }
+  .pill[data-state="dropped"] { color: var(--muted); }
+  .pill .dot.sm { width: 12px; height: 12px; border-width: 1.5px; }
+  .pill .dot.sm svg { width: 7px; height: 7px; }
+
+  /* 线路卡片：左边信息（浅灰底），右边轨道（白底） */
+  .line {
+    display: grid; grid-template-columns: 232px minmax(0, 1fr); align-items: stretch;
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px;
+    margin-bottom: 10px; overflow: hidden; box-shadow: var(--card-shadow);
+  }
+  .line:last-child { margin-bottom: 0; }
+  .line-head { padding: 14px 16px; background: var(--head-bg); border-right: 1px solid var(--grid); display: flex; flex-direction: column; gap: 7px; }
+  .line-title { display: flex; align-items: center; gap: 9px; min-width: 0; }
+  .line-no {
+    flex: none; min-width: 26px; height: 26px; padding: 0 7px; border-radius: 8px;
+    display: inline-grid; place-items: center; font-size: 13px; font-weight: 700;
+    background: var(--badge-bg); color: var(--badge-ink);
+  }
+  .line[data-archived] .line-no { background: var(--muted); color: var(--surface-1); }
+  .line-name { font-size: 16px; font-weight: 700; line-height: 1.3; overflow-wrap: break-word; }
+  .line-count { font-size: 12.5px; color: var(--text-secondary); }
+  .line-count b { color: var(--text-primary); font-size: 16px; font-variant-numeric: tabular-nums; }
+  .bar { height: 6px; border-radius: 3px; background: var(--grid); overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 3px; background: var(--good); }
+  .line-foot { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+  .line-links { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: auto; padding-top: 4px; font-size: 12px; }
+  .line-links a { color: var(--text-secondary); text-underline-offset: 2px; }
+  .line-links a:hover { color: var(--text-primary); }
+  .tag { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--text-secondary); background: var(--wash); border-radius: 6px; padding: 2px 7px; }
+  .line-act {
+    appearance: none; cursor: pointer;
+    font: inherit; font-size: 12px; color: var(--text-secondary);
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px; padding: 3px 10px;
+  }
+  .line-act:hover { background: var(--wash); color: var(--text-primary); }
+
+  /* 父节点：项目页写了 parent: 的几条线挂在一张分组卡里，左边一根树形连线把支线串起来 */
+  .fam {
+    border: 1px solid var(--border); border-radius: 16px; padding: 12px;
+    background: color-mix(in srgb, var(--surface-1) 55%, transparent); box-shadow: var(--card-shadow);
+    margin-bottom: 10px;
+  }
+  .fam:last-child { margin-bottom: 0; }
+  .fam-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 2px 4px; cursor: pointer; }
+  .fam-head .fold-btn { margin: 0 -6px 0 -4px; }
+  .fam-badge {
+    flex: none; width: 30px; height: 30px; border-radius: 9px; display: inline-grid; place-items: center;
+    background: var(--badge-bg); color: var(--badge-ink);
+  }
+  .fam-badge svg { width: 17px; height: 17px; }
+  .fam-title { flex: 1 1 180px; min-width: 0; }
+  .fam-name { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; line-height: 1.3; }
+  .fam-sub { font-size: 12.5px; color: var(--text-secondary); margin-top: 2px; }
+  .fam-sub b { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+  .fam-head > .bar { flex: 0 0 120px; }
+  .fam-pills { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+  .fam-toggle {
+    appearance: none; cursor: pointer;
+    font: inherit; font-size: 12px; color: var(--text-secondary);
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px; padding: 3px 10px;
+  }
+  .fam-toggle:hover { background: var(--wash); color: var(--text-primary); }
+  .kids { margin: 12px 0 0 18px; padding-left: 22px; }
+  .kid { position: relative; margin-bottom: 10px; }
+  .kid:last-child { margin-bottom: 0; }
+  .kid .line { margin-bottom: 0; }
+  /* 竖线从父节点一路下来，最后一条支线只画到拐弯处；横线拐进每条支线的标题 */
+  .kid::before { content: ""; position: absolute; left: -22px; top: -12px; bottom: -10px; border-left: 2px solid var(--axis); }
+  .kid:last-child::before { bottom: auto; height: 40px; }
+  .kid::after { content: ""; position: absolute; left: -22px; top: 27px; width: 20px; border-top: 2px solid var(--axis); }
+  /* 折叠：每条线路卡、每个分块都能折起来。按钮是一个小三角，展开朝下、折起朝右 */
+  .fold-btn {
+    flex: none; appearance: none; cursor: pointer; width: 24px; height: 24px; padding: 0; margin: 0 -4px 0 -6px;
+    border: 0; border-radius: 6px; background: transparent; color: var(--text-secondary);
+    display: inline-grid; place-items: center;
+  }
+  .fold-btn:hover { background: var(--wash); color: var(--text-primary); }
+  .fold-btn svg { width: 14px; height: 14px; transition: transform .15s; }
+  .fold-btn[aria-expanded="false"] svg { transform: rotate(-90deg); }
+  @media (prefers-reduced-motion: reduce) { .fold-btn svg { transition: none; } }
+  /* 名字左边多了小三角，标题行的间距收一点，七个字的名字不折行 */
+  .line-title { gap: 6px; }
+  @media (min-width: 861px) { .line { grid-template-columns: 246px minmax(0, 1fr); } }
+  .zone-head { cursor: pointer; }
+  .zone[data-folded] > :not(.zone-head) { display: none; }
+  .zone[data-folded] .zone-head { margin-bottom: 0; }
+  .line.folded { display: block; }
+  .fold-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 11px 16px; background: var(--head-bg); }
+  .fold-row .line-title { flex: 0 1 auto; }
+  .fold-row .bar { flex: 0 0 90px; }
+  .fold-row .line-links { margin: 0 0 0 auto; padding: 0; }
+  .line-branch { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-secondary); min-width: 0; }
+  .line-branch svg { flex: none; width: 13px; height: 13px; }
+  .line-branch span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* 置顶：图钉用文字色，不引入新的颜色 */
+  .pin-btn {
+    appearance: none; flex: none; margin-left: auto; cursor: pointer;
+    width: 28px; height: 28px; border: 0; border-radius: 8px; background: transparent;
+    color: var(--muted); display: inline-grid; place-items: center;
+  }
+  .pin-btn svg, .pin-static svg { width: 16px; height: 16px; }
+  .pin-btn:hover { background: var(--wash); color: var(--text-primary); }
+  .pin-btn[aria-pressed="true"], .pin-static { color: var(--text-primary); }
+  .pin-static { flex: none; margin-left: auto; display: inline-grid; }
+  .pin-mark {
+    position: absolute; z-index: 2; top: -1px; left: calc(50% + 7px);
+    width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--surface-1); color: var(--text-primary);
+  }
+  .pin-mark svg { width: 11px; height: 11px; }
+  .chip {
+    appearance: none; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+    font: inherit; font-size: 13px; padding: 7px 12px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--surface-1); color: var(--text-secondary);
+  }
+  .chip svg { width: 14px; height: 14px; }
+  .chip:hover { color: var(--text-primary); }
+  .chip[aria-pressed="true"] { background: var(--text-primary); border-color: var(--text-primary); color: var(--surface-1); font-weight: 600; }
+  .chip .n { font-variant-numeric: tabular-nums; opacity: .75; }
+
+  .track-wrap { display: grid; align-items: center; min-width: 0; }
+  /* 一条线放不下就折到下一行，不再横着拖、不被右边截掉 */
+  .track { display: flex; flex-wrap: wrap; row-gap: 10px; margin: 0; padding: 16px 14px 10px; list-style: none; }
+  .track.is-quiet { padding: 10px 14px; }
+  .stop { flex: 0 0 156px; }
+  .stop.is-focus { flex-basis: 220px; }
+  .station {
+    appearance: none; border: 0; background: transparent; color: inherit; font: inherit;
+    width: 100%; padding: 0 6px 8px; border-radius: 10px; cursor: pointer; text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 0;
+    --rail-pad: 6px;
+  }
+  .station:hover { background: var(--wash); }
+  .rail { position: relative; width: 100%; height: 34px; display: grid; place-items: center; }
+  /* 轨道按站拆成左右两半，宽窄不一样也能接上。驶入到站的那一半 = 实线绿，其余 = 灰虚线 */
+  .seg { position: absolute; top: 50%; height: 0; border-top: 2px dashed var(--axis); transform: translateY(-1px); }
+  /* 伸出按钮左右留白，两站的线才接得上 */
+  .seg.in { left: calc(var(--rail-pad) * -1); width: calc(50% + var(--rail-pad)); }
+  .seg.out { left: 50%; width: calc(50% + var(--rail-pad)); }
+  .stop[data-state="done"] .seg.in,
+  .stop[data-next="done"] .seg.out { border-top: 4px solid var(--good); transform: translateY(-2px); }
+  .stop:first-of-type .seg.in,
+  .stop:last-of-type .seg.out { display: none; }
+  .st-title {
+    margin-top: 4px; font-size: 13px; line-height: 1.4; font-weight: 500; color: var(--text-primary);
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+  .stop[data-state="done"] .st-title { color: var(--text-secondary); font-weight: 400; }
+  /* 验收方式（2026-10-10）：自动验收 = AI 替你验的，圆点空心绿勾 + 虚线小标签；人工验收 = 你亲手验的，实心绿点 + 绿底小标签 */
+  .stop[data-acc="auto"] .dot, .dot[data-acc="auto"] { background: var(--surface-1); color: var(--good); }
+  .acc { display: inline-block; margin-left: 4px; padding: 0 5px; border-radius: 5px; font-size: 10.5px; line-height: 16px; font-weight: 500; white-space: nowrap; vertical-align: 1px; }
+  .acc-me { background: var(--done-tint); color: var(--done-ink); }
+  .acc-auto { border: 1px dashed var(--good); color: var(--done-ink); }
+  .stop[data-state="dropped"] .st-title { color: var(--text-secondary); font-weight: 400; text-decoration: line-through; text-decoration-color: var(--muted); }
+  /* 待验收、进行中、置顶：横向上占得更宽，底色和字重都压过没开始的站 */
+  .stop.is-focus .st-title { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+  .stop.is-focus[data-state="review"] .station { background: var(--review-tint); }
+  .stop.is-focus[data-state="doing"] .station { background: var(--doing-tint); }
+  .stop.is-focus[data-state="todo"] .station,
+  .stop.is-focus[data-state="paused"] .station,
+  .stop.is-focus[data-state="done"] .station,
+  .stop.is-focus[data-state="dropped"] .station { background: var(--z-pinned); }
+  .stop.is-focus .dot { width: 26px; height: 26px; }
+  .stop.is-focus .dot svg { width: 14px; height: 14px; }
+  .stop.is-focus[data-state="review"] .dot { box-shadow: 0 0 0 3px var(--review-tint); }
+  .stop.is-focus[data-state="doing"] .dot { box-shadow: 0 0 0 3px var(--doing-tint); }
+  .stop.is-focus[data-state="todo"] .dot,
+  .stop.is-focus[data-state="paused"] .dot,
+  .stop.is-focus[data-state="done"] .dot,
+  .stop.is-focus[data-state="dropped"] .dot { box-shadow: 0 0 0 3px var(--z-pinned); }
+  .stop.is-focus[data-state="review"] .station:hover { background: color-mix(in srgb, var(--review) 28%, var(--surface-1)); }
+  .stop.is-focus[data-state="doing"] .station:hover { background: color-mix(in srgb, var(--accent) 18%, var(--surface-1)); }
+  /* 做完的、停运的、归档线上剩下的，收成轨道上的小点，不铺绿线 */
+  .stop.pack { flex: 0 0 auto; }
+  .stop.pack .station { width: auto; padding: 0; --rail-pad: 0px; background: transparent; }
+  .stop.pack .station:hover { background: transparent; }
+  .stop.pack .rail { width: auto; }
+  .pack-mark {
+    position: relative; z-index: 1; padding: 0 3px;
+    background: var(--surface-1); color: var(--muted);
+    font-size: 12px; font-weight: 600; line-height: 1; letter-spacing: .02em; white-space: nowrap;
+  }
+  .pack-mark b { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+  .pack-mark.is-open { font-size: 11px; color: var(--text-secondary); }
+  .stop.pack .station:hover .pack-mark,
+  .stop.pack .station:hover .pack-mark b { color: var(--text-primary); }
+  /* 不用盯的站（没开工、暂缓，以及摊开时的已到站）：小点 + 小字站名，不抢眼 */
+  .stop:not(.is-focus):not(.pack) { flex: 0 0 112px; }
+  .stop:not(.is-focus):not(.pack) .station { padding-bottom: 4px; }
+  .stop:not(.is-focus):not(.pack) .dot { width: 12px; height: 12px; border-width: 1.5px; box-shadow: 0 0 0 3px var(--surface-1); }
+  .stop:not(.is-focus):not(.pack) .dot svg { width: 7px; height: 7px; }
+  .stop:not(.is-focus):not(.pack) .st-title { min-height: 0; font-size: 12px; font-weight: 400; color: var(--muted); -webkit-line-clamp: 2; }
+
+  .empty { padding: 40px 16px; text-align: center; color: var(--text-secondary); background: var(--surface-1); border: 1px dashed var(--axis); border-radius: 14px; }
+  .more { margin: 18px 4px 0; font-size: 13px; color: var(--text-secondary); }
+  .linkish { appearance: none; border: 0; background: none; padding: 0; font: inherit; color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+
+  /* 列表视图 */
+  .table-wrap { background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px; overflow-x: auto; box-shadow: var(--card-shadow); }
+  table { border-collapse: collapse; width: 100%; min-width: 760px; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+  th { font-size: 12px; font-weight: 600; color: var(--text-secondary); position: sticky; top: 0; background: var(--head-bg); }
+  tr:last-child td { border-bottom: 0; }
+  td.num, td.date { white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+  td .state { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: var(--wash); }
+
+  /* 悬浮提示 */
+  .tip {
+    position: fixed; z-index: 30; max-width: 320px; pointer-events: none;
+    background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 12px; box-shadow: var(--shadow); font-size: 12.5px;
+  }
+  .tip .t-id { color: var(--text-secondary); font-size: 11.5px; display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+  .tip .t-dates { color: var(--text-secondary); font-size: 11.5px; margin-top: 5px; }
+
+  /* 面板与对话框 */
+  .scrim { position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, .32); display: flex; justify-content: flex-end; }
+  .scrim.center { justify-content: center; align-items: center; padding: 16px; }
+  .sheet { width: min(480px, 100%); height: 100%; overflow-y: auto; background: var(--surface-1); padding: 22px 22px 32px; box-shadow: var(--shadow); }
+  .dialog { width: min(460px, 100%); max-height: 100%; overflow-y: auto; background: var(--surface-1); border-radius: 16px; padding: 22px; box-shadow: var(--shadow); }
+  .dialog h2 { font-size: 17px; margin: 0 0 10px; }
+  .dialog p { margin: 0 0 10px; color: var(--text-secondary); }
+  .dialog ul { margin: 0 0 12px; padding-left: 18px; color: var(--text-secondary); }
+  .dialog li { margin: 3px 0; }
+  .sheet-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  .sheet-top .state { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+  .btn { appearance: none; border: 1px solid var(--border); background: transparent; color: var(--text-primary); font: inherit; border-radius: 9px; padding: 7px 14px; cursor: pointer; }
+  .btn:hover { background: var(--wash); }
+  .btn.primary { background: var(--text-primary); color: var(--surface-1); border-color: var(--text-primary); font-weight: 600; }
+  .btn.primary:hover { opacity: .88; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .sheet h2 { font-size: 18px; line-height: 1.35; margin: 0 0 4px; }
+  .sheet .sub { color: var(--text-secondary); font-size: 12.5px; margin-bottom: 14px; }
+  .sheet .full { background: var(--wash); border-radius: 10px; padding: 12px 14px; margin-bottom: 18px; overflow-wrap: anywhere; }
+  .sheet h3 { font-size: 13px; margin: 20px 0 8px; color: var(--text-secondary); font-weight: 600; }
+
+  .edit { border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+  .edit h3 { margin-top: 0; }
+  .picker { border: 0; padding: 0; margin: 0 0 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; }
+  .opt { display: flex; align-items: center; gap: 9px; padding: 9px 10px; border: 1px solid var(--border); border-radius: 10px; cursor: pointer; font-size: 13px; }
+  .opt:hover { background: var(--wash); }
+  .opt input { position: absolute; opacity: 0; pointer-events: none; }
+  .opt:has(input:checked) { border-color: var(--text-primary); box-shadow: inset 0 0 0 1px var(--text-primary); font-weight: 600; }
+  .opt small { display: block; font-weight: 400; font-size: 11px; color: var(--text-secondary); }
+  /* 「我亲手验过了」是勾选框，不是单选卡：把框露出来 */
+  .opt.opt-check { margin: 0 0 12px; }
+  .opt.opt-check input { position: static; opacity: 1; pointer-events: auto; width: 16px; height: 16px; margin: 0; accent-color: var(--good); }
+  .opt .dot { box-shadow: none; }
+  .field-label { display: block; font-size: 12.5px; color: var(--text-secondary); margin-bottom: 5px; }
+  textarea { width: 100%; resize: vertical; min-height: 64px; line-height: 1.5; }
+  .actions { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .actions .hint { font-size: 12px; color: var(--text-secondary); }
+  .readonly-note { font-size: 13px; color: var(--text-secondary); background: var(--wash); border-radius: 10px; padding: 12px 14px; }
+  .err { color: var(--critical); font-size: 12.5px; margin-top: 8px; }
+
+  .kv { display: grid; grid-template-columns: 92px 1fr; gap: 8px 12px; margin: 0; font-size: 13px; }
+  .kv dt { color: var(--text-secondary); }
+  .kv dd { margin: 0; overflow-wrap: anywhere; }
+  .hist { list-style: none; margin: 0; padding: 0; font-size: 12.5px; }
+  .hist li { padding: 8px 0; border-top: 1px solid var(--grid); }
+  .hist li:first-child { border-top: 0; padding-top: 0; }
+  .hist .when { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+  .hist .note { display: block; margin-top: 2px; overflow-wrap: anywhere; }
+  .sheet .links { margin-top: 18px; font-size: 13px; }
+  .sheet .links a { color: var(--accent); text-underline-offset: 2px; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 60;
+    background: var(--text-primary); color: var(--surface-1); border-radius: 10px; padding: 10px 16px;
+    font-size: 13px; box-shadow: var(--shadow); max-width: calc(100% - 32px);
+  }
+
+  @media (max-width: 860px) {
+    .zone { padding: 12px; border-radius: 14px; }
+    .search { margin-left: 0; max-width: none; }
+    .line { grid-template-columns: minmax(0, 1fr); }
+    .line-head { border-right: 0; border-bottom: 1px solid var(--grid); }
+    .fam { padding: 10px; }
+    .fam-head > .bar { flex-basis: 100%; }
+    .kids { margin-left: 6px; padding-left: 14px; }
+    .kid::before, .kid::after { left: -14px; }
+    .kid::after { width: 12px; }
+    .stop { flex-basis: 140px; }
+    .stop.is-focus { flex-basis: 188px; }
+    .stop.pack { flex: 0 0 auto; }
+    .stop:not(.is-focus):not(.pack) { flex-basis: 96px; }
+    .title-row { flex-wrap: wrap; }
+    .hd-tools { flex-basis: 100%; }
+    .hd-tools .search { flex: 1 1 auto; }
+    .todo-row { grid-template-columns: 70px minmax(0, 1fr) auto; }
+    .todo-row .proj { display: none; }
+    .todo-head .sub { flex-basis: 100%; }
+    .scrim:not(.center) { align-items: flex-end; }
+    .sheet { width: 100%; height: auto; max-height: 90vh; border-radius: 16px 16px 0 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="title-row">
+      <div class="brand">
+        <span class="logo" aria-hidden="true"><svg viewBox="0 0 28 28" fill="none"><path class="l-track" d="M3 14h22" stroke-width="2.4" stroke-linecap="round"/><circle cx="6.5" cy="14" r="3.4" fill="var(--good)"/><circle cx="14" cy="14" r="3.4" fill="var(--review)"/><circle cx="21.5" cy="14" r="3.4" fill="var(--accent)"/></svg></span>
+        <h1>需求线路图</h1>
+        <span class="hd-nums" id="hd-nums"></span>
+      </div>
+      <div class="hd-tools">
+        <input class="search" id="f-q" type="search" placeholder="搜编号或文字" aria-label="搜索">
+        <button type="button" class="chip" id="f-toggle" aria-expanded="false" aria-controls="filters"></button>
+        <button type="button" class="btn refresh-btn" id="refresh" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          <span>刷新</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 筛选和说明平时收着，点页头「筛选」才展开 -->
+  <div class="zone toolbar filters" id="filters" role="group" aria-label="筛选" hidden>
+    <button type="button" class="chip" id="f-pin" aria-pressed="false" title="只看置顶的（快捷键 P）"></button>
+    <div class="f-group"><span class="f-label">状态</span>
+      <div class="seg-ctl" id="f-state" role="group" aria-label="按状态">
+        <button type="button" data-v="all">全部</button>
+        <button type="button" data-v="open">还没到站</button>
+        <button type="button" data-v="review">待验收</button>
+        <button type="button" data-v="done">已到站</button>
+        <button type="button" data-v="auto" title="AI 替你验收到站的站，想复查就从这里点开">自动验收</button>
+      </div>
+    </div>
+    <div class="f-group"><span class="f-label">范围</span>
+      <div class="seg-ctl" id="f-scope" role="group" aria-label="按范围">
+        <button type="button" data-v="active">在用线路</button>
+        <button type="button" data-v="main">主要项目</button>
+        <button type="button" data-v="all">含已归档</button>
+      </div>
+    </div>
+    <div class="f-group"><span class="f-label">显示</span>
+      <div class="seg-ctl" id="f-view" role="group" aria-label="视图">
+        <button type="button" data-v="metro">线路图</button>
+        <button type="button" data-v="table">列表</button>
+      </div>
+    </div>
+    <div class="about">
+      <p>每条线是一个项目，每一站是一个需求。<strong>绿色 = 已到站（做完了）</strong>，橙色 = 等你验收，蓝色 = 正在做，小灰点 = 还没开工。做完的、归档的收成「⋯ N」，点开能展开。已到站分两种：<span class="acc acc-me">人工验收</span> 是你亲手验的，<span class="acc acc-auto">自动验收</span> 是不太紧要、AI 自己查得到结果的站，AI 替你验了（空心绿勾），想复查点开就行。</p>
+      <div class="meta" id="meta"></div>
+    </div>
+  </div>
+
+  <section class="belt-box" id="belt" aria-label="传送带"></section>
+
+  <section class="todo-box" id="todo" aria-label="要你做的"></section>
+
+  <main id="view"></main>
+</div>
+
+<div class="tip" id="tip" hidden></div>
+<div class="scrim" id="scrim" hidden></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+const DATA = /*__METRO_DATA__*/;
+// null = 静态只读页；{token} = 由「打开地铁图.bat」启动的本地服务提供，可以改台账。
+const SERVER = /*__SERVER__*/;
+
+const STATES = {
+  done:    { label: "已到站", hint: "做完了" },
+  review:  { label: "待验收", hint: "AI 这边做完了，等你验收 / 拍板" },
+  doing:   { label: "进行中", hint: "正在做" },
+  todo:    { label: "未到站", hint: "还没开始" },
+  paused:  { label: "暂缓",   hint: "先放着，之后可能重启" },
+  dropped: { label: "停运",   hint: "放弃不做了" },
+};
+const OPEN_STATES = ["review", "doing", "todo", "paused"];
+// 谁验收的（2026-10-10）：auto = AI 自己查过结果替你验收（不太紧要的站），me = 你亲手验收。旧站没记，不打标。
+const ACCEPT = {
+  auto: { label: "自动验收", hint: "不太紧要、AI 自己查得到结果，AI 替你验收到站" },
+  me:   { label: "人工验收", hint: "你亲手验收过" },
+};
+const accOf = (s) => (s.state === "done" && ACCEPT[s.accept] ? s.accept : "");
+const accTag = (s) => (accOf(s) ? `<span class="acc acc-${accOf(s)}" title="${ACCEPT[accOf(s)].hint}">${ACCEPT[accOf(s)].label}</span>` : "");
+const EXEC = { ai: "AI 可独立完成", mixed: "AI 做一部分，你来验收", me: "你自己做 / 在等外部" };
+const ICON = {
+  done:    '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6.4 5 8.8 9.6 3.6"/></svg>',
+  review:  '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M1.2 6S3 2.8 6 2.8 10.8 6 10.8 6 9 9.2 6 9.2 1.2 6 1.2 6z"/><circle cx="6" cy="6" r="1.4" fill="currentColor" stroke="none"/></svg>',
+  doing:   '<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="2.6" fill="currentColor"/></svg>',
+  todo:    '<svg viewBox="0 0 12 12" aria-hidden="true"></svg>',
+  paused:  '<svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><rect x="3" y="2.5" width="2" height="7" rx=".6"/><rect x="7" y="2.5" width="2" height="7" rx=".6"/></svg>',
+  dropped: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3.2 3.2l5.6 5.6M8.8 3.2 3.2 8.8"/></svg>',
+};
+// 图钉：空心 = 没置顶，实心 = 已置顶
+const PIN = (filled) => `<svg viewBox="0 0 16 16" fill="${filled ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M5.6 1.8h4.8l-.7 4.3 2.4 2.7v1.3H3.9V8.8l2.4-2.7z"/><path d="M8 10.1v4.3" fill="none"/></svg>`;
+
+const GROUP_ICON = {
+  open: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="3.5" cy="8" r="2"/><circle cx="12.5" cy="8" r="2"/><path d="M5.8 8h4.4" stroke-dasharray="1.5 1.7"/></svg>',
+  done: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M5.2 8.2 7.2 10.1 10.9 6"/></svg>',
+  archived: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="2" y="3" width="12" height="3" rx="1"/><path d="M3 6v6.5a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6M6.5 9h3"/></svg>',
+};
+// 父节点（一根主干分出几条支线）和支线上的代码分支
+const FORK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="4" cy="3.2" r="1.7"/><circle cx="12" cy="3.2" r="1.7"/><circle cx="8" cy="12.8" r="1.7"/><path d="M4 4.9v1.3a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V4.9M8 8.2v2.9"/></svg>';
+const BRANCH = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="4.5" cy="3.5" r="1.6"/><circle cx="4.5" cy="12.5" r="1.6"/><circle cx="11.5" cy="5.5" r="1.6"/><path d="M4.5 5.1v5.8M11.5 7.1c0 2.6-2.2 3.2-5.4 4.2"/></svg>';
+
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const md = (d) => (d && d.length >= 10 ? d.slice(5) : d || "");
+const dot = (state, sm) => `<span class="dot${sm ? " sm" : ""}" data-state="${state}">${ICON[state]}</span>`;
+
+const filters = { state: "all", scope: "active", view: "metro", q: "", pin: false };
+try { Object.assign(filters, JSON.parse(localStorage.getItem("metro-filters-v2") || "{}"), { q: "" }); } catch (e) {}
+const saveFilters = () => { try { localStorage.setItem("metro-filters-v2", JSON.stringify(filters)); } catch (e) {} };
+
+// byId / lineByName 指向 DATA 里的同一批对象：置顶开关直接改它们，重新渲染即可，不用整页刷新。
+const byId = new Map();
+const lineByName = new Map();
+DATA.lines.forEach((l) => {
+  lineByName.set(l.name, l);
+  l.stations.forEach((s) => { s.lineNo = l.no; s.linePage = l.page; s.lineArchived = l.archived; byId.set(s.id, s); });
+});
+// 一条线「和置顶有关」= 它自己被置顶，或它有被置顶的站
+const pinRelated = (l) => l.pinned || l.stations.some((s) => s.pinned);
+// 「只看置顶的」打开时每条线参与显示的站：置顶的线给全部站，其他线只给被置顶的那几站
+const pool = (l) => (!filters.pin || l.pinned ? l.stations : l.stations.filter((s) => s.pinned));
+
+function matches(s) {
+  if (filters.state === "done" && s.state !== "done") return false;
+  if (filters.state === "auto" && accOf(s) !== "auto") return false;
+  if (filters.state === "open" && !OPEN_STATES.includes(s.state)) return false;
+  if (filters.state === "review" && s.state !== "review") return false;
+  if (filters.q) {
+    const hay = `${s.id} #${s.id} ${s.project} ${s.text}`.toLowerCase();
+    if (!hay.includes(filters.q.toLowerCase())) return false;
+  }
+  return true;
+}
+
+const inScope = (l) => (filters.scope === "all" ? true : filters.scope === "main" ? l.registered && !l.archived : !l.archived);
+
+// 挂在同一父节点下的支线整组进出：组里有一条在当前范围内，别的支线（比如已归档的）也跟着留在组里，不拆散
+const famsInScope = () => new Set(DATA.lines.filter((l) => l.parent && inScope(l)).map((l) => l.parent));
+const inView = (l, fams) => inScope(l) || (l.parent && fams.has(l.parent));
+function visibleLines() {
+  const fams = famsInScope();
+  return DATA.lines.filter((l) => inView(l, fams))
+    .map((l) => ({ ...l, shown: pool(l).filter(matches) })).filter((l) => l.shown.length);
+}
+
+// 父节点收起 / 展开：只是本机浏览器里的查看习惯，记不住也不影响台账
+const FAM_KEY = "metro-fam-collapsed-v1";
+const famCollapsed = new Set();
+try { JSON.parse(localStorage.getItem(FAM_KEY) || "[]").forEach((n) => famCollapsed.add(n)); } catch (e) {}
+const saveFam = () => { try { localStorage.setItem(FAM_KEY, JSON.stringify([...famCollapsed])); } catch (e) {} };
+
+// 线路卡、分块折起来：也只记在本机浏览器里。正在搜索时一律摊开，免得要找的站藏起来
+const FOLD_KEY = "metro-folded-v1";
+// lines = 你手动折起的线；opened = 默认折起（全线到站 / 已归档）但你手动点开过的线
+const folded = { lines: new Set(), zones: new Set(), opened: new Set() };
+try {
+  const f = JSON.parse(localStorage.getItem(FOLD_KEY) || "{}");
+  (f.lines || []).forEach((n) => folded.lines.add(n));
+  (f.zones || []).forEach((n) => folded.zones.add(n));
+  (f.opened || []).forEach((n) => folded.opened.add(n));
+} catch (e) {}
+const saveFolded = () => { try { localStorage.setItem(FOLD_KEY, JSON.stringify({ lines: [...folded.lines], zones: [...folded.zones], opened: [...folded.opened] })); } catch (e) {} };
+// 全线到站、已归档的线没有要盯的站，默认只占一行（只看已到站时不收）
+const foldByDefault = (l) => !["done", "auto"].includes(filters.state) && (!!l.archived || l.review + l.doing + l.todo + l.paused === 0);
+const lineFolded = (l) => folded.lines.has(l.name) || (foldByDefault(l) && !folded.opened.has(l.name));
+function toggleLineFold(name) {
+  const l = lineByName.get(name);
+  if (!l) return;
+  if (lineFolded(l)) { folded.lines.delete(name); if (foldByDefault(l)) folded.opened.add(name); }
+  else { folded.lines.add(name); folded.opened.delete(name); }
+  saveFolded();
+}
+const CHEVRON = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>';
+const foldBtn = (attr, key, open, label) =>
+  `<button type="button" class="fold-btn" ${attr}="${esc(key)}" aria-expanded="${open}" aria-label="${open ? "折起" : "展开"}${esc(label)}" title="${open ? "折起" : "展开"}">${CHEVRON}</button>`;
+
+// 页头两个数和「要你做的」跟着「范围」和「只看置顶的」走（状态筛选和搜索不影响它们）
+const scopedStations = () => DATA.lines.filter(inScope).flatMap(pool);
+const FILTER_DEFAULTS = { state: "all", scope: "active", view: "metro", pin: false };
+function renderHeader() {
+  const all = scopedStations();
+  const n = (k) => all.filter((s) => s.state === k).length;
+  $("#hd-nums").innerHTML = `<span class="n-rev">${n("review")} 件等你验</span><span class="n-doing">${n("doing")} 件在做</span>`;
+  const on = Object.keys(FILTER_DEFAULTS).filter((k) => filters[k] !== FILTER_DEFAULTS[k]).length;
+  const open = !$("#filters").hidden;
+  const btn = $("#f-toggle");
+  btn.setAttribute("aria-expanded", String(open));
+  btn.setAttribute("aria-pressed", String(on > 0));
+  btn.title = on ? `有 ${on} 个筛选条件在起作用` : "置顶、状态、范围、列表视图和说明都在这里";
+  btn.innerHTML = `筛选${on ? `<span class="n">· ${on}</span>` : ""}<span class="caret">${open ? "▲" : "▼"}</span>`;
+}
+
+// 到点：过期几天 / 今天 / 几天后。只有日期的按当天结束算
+function dueInfo(due) {
+  if (!due || due === "none") return { cls: "", text: "没定到点", key: "9999" };
+  const d = new Date(due.length <= 10 ? `${due}T23:59` : due);
+  if (isNaN(d)) return { cls: "", text: due, key: due };
+  const day = (x) => Math.floor(new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime() / 864e5);
+  const diff = day(d) - day(new Date());
+  if (diff < 0) return { cls: "late", text: `过期 ${-diff} 天`, key: due };
+  if (diff === 0) return { cls: "today", text: due.length > 10 ? `今天 ${due.slice(11, 16)}` : "今天到点", key: due };
+  return { cls: "", text: `${diff} 天后`, key: due };
+}
+const TODO_SHOW = 5;
+let todoAll = false;
+function renderTodo() {
+  const box = $("#todo");
+  const list = scopedStations().filter((s) => s.state === "review")
+    .map((s) => ({ s, due: dueInfo(s.due) }))
+    .sort((a, b) => a.due.key.localeCompare(b.due.key) || String(a.s.priority).localeCompare(String(b.s.priority)) || a.s.lineNo - b.s.lineNo);
+  if (!list.length) {
+    box.innerHTML = `<div class="todo-head"><h2>要你做的</h2></div><div class="todo-empty">没有等你验收的站</div>`;
+    return;
+  }
+  const shown = todoAll ? list : list.slice(0, TODO_SHOW);
+  const rest = list.length - TODO_SHOW;
+  box.innerHTML = `<div class="todo-head"><h2>要你做的</h2><span class="n">${list.length} 件等你验</span><span class="sub">按到点先后排，点一下跳到线上那一站</span></div>
+    <ol class="todo-list">${shown.map(({ s, due }) => `<li class="todo-row" data-jump="${esc(s.id)}" title="#${esc(s.id)} ${esc(s.title)}">
+      <span class="when ${due.cls}">${esc(due.text)}</span><span class="t">${esc(s.title)}</span><span class="proj">${esc(s.project)}</span><button type="button" class="go" data-jump="${esc(s.id)}">去验收 ›</button></li>`).join("")}</ol>
+    ${rest > 0 ? `<button type="button" class="todo-more" id="todo-more" aria-expanded="${todoAll}">${todoAll ? "收起，只看前 5 件 ▲" : `还有 ${rest} 件 ▼`}</button>` : ""}`;
+}
+
+// 传送带（#T122）：数据是出页时 ledger.js 的 beltReport，到点时刻是毫秒，倒计时按现在的钟自己算，每 30 秒重画一次
+const BELT = DATA.belt || { overdue: [], askDue: [], bin: [], running: [], reviewing: [], queued: [], untimed: [] };
+const beltOpen = new Set();
+function fmtLeft(min) {
+  const a = Math.abs(min);
+  const s = a < 60 ? `${a} 分钟` : a < 1440 ? `${(Math.round(a / 6) / 10).toString()} 小时` : `${Math.floor(a / 1440)} 天`;
+  return min < 0 ? `过点 ${s}` : `还剩 ${s}`;
+}
+const hhmm = (ms) => { const d = new Date(ms); return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
+function beltBucket(x, now) {
+  const m = x.left;
+  if (m <= 30) return 0;
+  if (m <= 60) return 1;
+  if (m <= 120) return 2;
+  if (m <= 180) return 3;
+  const day = (t) => Math.floor(new Date(new Date(t).getFullYear(), new Date(t).getMonth(), new Date(t).getDate()).getTime() / 864e5);
+  // 只写日期的到点 = 那天过完（下一天 0 点），按那一天算
+  const d = day(x.dueAt - 1) - day(now);
+  return d <= 0 ? 4 : d === 1 ? 5 : d === 2 ? 6 : 7;
+}
+const BELT_COLS = ["30 分内", "1 小时内", "2 小时内", "3 小时内", "今天", "明天", "后天", "3 天+"];
+function renderBelt() {
+  const box = $("#belt");
+  const now = Date.now();
+  const timed = [...BELT.overdue, ...BELT.running, ...BELT.bin, ...BELT.reviewing]
+    .filter((x) => x.dueAt)
+    .map((x) => ({ ...x, left: Math.round((x.dueAt - now) / 60000) }))
+    .sort((a, b) => a.left - b.left);
+  const late = timed.filter((x) => x.left < 0);
+  const on = timed.filter((x) => x.left >= 0);
+  const asks = BELT.askDue;
+  const queued = BELT.queued.filter((x) => !(x.askAt && x.askAt < now));
+  const askLate = [...asks, ...BELT.queued.filter((x) => x.askAt && x.askAt < now)];
+  const bx = (x, cls) => `<button type="button" class="bx ${cls}" data-jump="${esc(x.id)}" title="#${esc(x.id)} ${esc(x.project)}｜${esc(x.title)}｜到点 ${esc(String(x.due).replace("T", " "))}${x.status === "review" ? "（验收期）" : ""}">
+      <span class="id">#${esc(x.id)} · ${esc(x.project)}</span><span class="nm">${esc(x.title)}</span><span class="lf">${esc(x.status === "review" && x.left >= 0 ? `验收期${fmtLeft(x.left)}` : fmtLeft(x.left))}${x.left >= 0 && x.left < 1440 && hhmm(x.dueAt) !== "00:00" ? ` · ${hhmm(x.dueAt)}` : ""}</span></button>`;
+  const first = late[0] || on[0];
+  const hot = first ? `最急 #${first.id} ${first.title}（${fmtLeft(first.left)}）` : "";
+  const head = `<div class="belt-head"><h2>传送带</h2><span class="hot">${on.length} 站在带上${late.length ? ` · ${late.length} 站过点` : ""}${hot ? ` · ${esc(hot)}` : ""}</span><span class="sub">越靠左越快到点 · 现在 ${hhmm(now)}</span></div>`;
+  if (!timed.length && !queued.length && !askLate.length) {
+    box.innerHTML = head + `<div class="belt-empty">带上没有站：开工的站排了预算、交来验收的站有验收期，才会上带。</div>`;
+    return;
+  }
+  const lateRun = late.filter((x) => x.status !== "review");
+  const lateRev = late.filter((x) => x.status === "review");
+  const bin = `<div class="belt-bin${late.length || askLate.length ? " hot" : ""}"><b>到点</b>
+    ${lateRun.length ? `<span>没收尾 ${lateRun.length}</span>${lateRun.map((x) => bx(x, "late")).join("")}` : ""}
+    ${lateRev.length ? `<span>验收筐 ${lateRev.length}</span>${lateRev.map((x) => bx(x, "rev")).join("")}` : ""}
+    ${askLate.length ? `<span>审定过期 ${askLate.length}，按默认开工</span>` : ""}
+    ${!late.length && !askLate.length ? `<span>空的。过点的落这里，不挡后面</span>` : ""}</div>`;
+  const cols = BELT_COLS.map(() => []);
+  for (const x of on) cols[beltBucket(x, now)].push(x);
+  const colHtml = cols.map((c, i) => {
+    if (!c.length) return "";
+    const all = beltOpen.has(i);
+    const cap = window.innerWidth < 600 ? 1 : 3; // 手机上每格只露一块，免得把「要你做的」挤到下面
+    const shown = all ? c : c.slice(0, cap);
+    const more = c.length > cap ? `<button type="button" class="belt-more" data-belt-more="${i}">${all ? "收起 ▲" : `+${c.length - cap} 站 ▼`}</button>` : "";
+    return `<div class="belt-col"><div class="boxes">${shown.map((x) => bx(x, x.status === "review" ? "rev" : "run")).join("")}${more}</div><div class="tread"></div><div class="lbl${i < 2 ? " soon" : ""}">${BELT_COLS[i]}</div></div>`;
+  }).join("");
+  const qs = [...askLate.map((x) => ({ x, t: "审定过期" })), ...queued.map((x) => ({ x, t: x.ask ? `待审定 ${String(x.ask).slice(5)}` : "" }))];
+  const queue = qs.length ? `<div class="belt-queue">排队（开工才计时）：${qs.map(({ x, t }) => `<span class="q" data-jump="${esc(x.id)}" title="#${esc(x.id)} ${esc(x.project)}｜${esc(x.title)}">#${esc(x.id)} ${esc(x.title)} · ${esc(x.budget)}${t ? ` · ${esc(t)}` : ""}</span>`).join("")}</div>` : "";
+  box.innerHTML = head + `<div class="belt-row">${bin}${colHtml}</div>` + queue;
+}
+setInterval(renderBelt, 30000);
+
+// 从「要你做的」跳到线上那一站：挡着它的折叠、筛选先让开，滚过去闪两下
+function jumpTo(id) {
+  const s = byId.get(id);
+  if (!s) return;
+  const l = lineByName.get(s.project);
+  if (l && lineFolded(l)) toggleLineFold(l.name);
+  if (l && l.parent && famCollapsed.has(l.parent)) { famCollapsed.delete(l.parent); saveFam(); }
+  if (!["all", "open", "review"].includes(filters.state)) filters.state = "all";
+  if (filters.view !== "metro") filters.view = "metro";
+  if (filters.pin && !s.pinned && !(l && l.pinned)) filters.pin = false;
+  if (filters.q) { filters.q = ""; $("#f-q").value = ""; }
+  if (s.lineArchived && filters.scope !== "all") filters.scope = "all";
+  saveFilters();
+  render();
+  let el = view.querySelector(`.station[data-id="${CSS.escape(id)}"]`);
+  const zone = el && el.closest(".zone[data-folded]");
+  if (zone) { folded.zones.delete(zone.dataset.zone); saveFolded(); render(); el = view.querySelector(`.station[data-id="${CSS.escape(id)}"]`); }
+  if (!el) return openSheet(id);
+  el.scrollIntoView({ block: "center", behavior: "smooth" });
+  el.classList.remove("flash");
+  void el.offsetWidth;
+  el.classList.add("flash");
+  setTimeout(() => el.classList.remove("flash"), 2600);
+}
+
+// 置顶数跟统计块一样只算当前范围里的线，否则「在用线路」下会把已归档线上的置顶也数进去，和下面列出来的对不上
+const pinCount = (ls) => ls.filter((l) => l.pinned).length + ls.reduce((k, l) => k + l.stations.filter((s) => s.pinned).length, 0);
+
+function renderPinChip() {
+  const n = pinCount(DATA.lines.filter(inScope));
+  const hidden = pinCount(DATA.lines) - n;
+  const chip = $("#f-pin");
+  chip.setAttribute("aria-pressed", String(!!filters.pin));
+  chip.title = "只看置顶的（快捷键 P）" + (hidden ? `\n另有 ${hidden} 个置顶在已归档或非主要项目的线路上，切到「合已归档」能看到` : "");
+  chip.innerHTML = `${PIN(filters.pin || n > 0)}置顶的<span class="n">${n}</span>`;
+}
+
+function stopHtml(s, next) {
+  const nextAttr = next ? ` data-next="${esc(next)}"` : "";
+  const focus = s.pinned || s.state === "review" || s.state === "doing";
+  const acc = accOf(s);
+  return `<li class="stop${focus ? " is-focus" : ""}" data-state="${s.state}"${acc ? ` data-acc="${acc}"` : ""}${nextAttr}>
+        <button type="button" class="station" data-id="${esc(s.id)}" aria-label="${esc(s.id)} ${esc(s.title)}，${STATES[s.state].label}${acc ? `（${ACCEPT[acc].label}）` : ""}${s.pinned ? "，已置顶" : ""}">
+          <span class="rail"><span class="seg in"></span><span class="seg out"></span>${dot(s.state)}${s.pinned ? `<span class="pin-mark" title="已置顶">${PIN(true)}</span>` : ""}</span>
+          <span class="st-title">${esc(s.title)}${accTag(s)}</span>
+        </button></li>`;
+}
+
+function packAria(run, open) {
+  if (open) return `收起这 ${run.length} 站`;
+  const nDone = run.filter((s) => s.state === "done").length;
+  const nDrop = run.filter((s) => s.state === "dropped").length;
+  const nArch = run.length - nDone - nDrop;
+  const bits = [];
+  const nAuto = run.filter((s) => accOf(s) === "auto").length;
+  if (nDone) bits.push(`已到 ${nDone} 站${nAuto ? `（其中自动验收 ${nAuto}）` : ""}`);
+  if (nDrop) bits.push(`停运 ${nDrop} 站`);
+  if (nArch) bits.push(`归档 ${nArch} 站`);
+  return `${bits.join("、")}，点开查看`;
+}
+
+function packHtml(key, run, open) {
+  const aria = packAria(run, open);
+  const face = open
+    ? `<span class="pack-mark is-open">收起</span>`
+    : `<span class="pack-mark">⋯ <b>${run.length}</b></span>`;
+  return `<li class="stop pack" data-state="quiet">
+        <button type="button" class="station pack-btn" data-run="${esc(key)}" aria-expanded="${open}" aria-label="${aria}" title="${aria}">
+          <span class="rail"><span class="seg in"></span><span class="seg out"></span>${face}</span>
+        </button></li>`;
+}
+
+// 做完的、停运的，以及归档线上没在做的，横向上收成小点。单独一站也收。
+// 置顶、待验收、进行中留在线上。正在搜索或只看已到站时不收。
+const openRuns = new Set();
+const revealedByHash = new Set();
+function runKey(lineName, stations) {
+  return `${lineName}|${stations[0].id}|${stations[stations.length - 1].id}|${stations.length}`;
+}
+function hashStationId() {
+  const h = decodeURIComponent((location.hash || "").slice(1));
+  return /^T\d+$/.test(h) ? h : "";
+}
+function omitOnTrack(s) {
+  if (s.pinned || s.state === "review" || s.state === "doing") return false;
+  if (s.state === "done" || s.state === "dropped") return true;
+  return !!s.lineArchived;
+}
+function trackHtml(l) {
+  const pieces = [];
+  let run = [];
+  const collapse = !["done", "auto"].includes(filters.state) && !filters.q;
+  const flush = () => {
+    if (!run.length) return;
+    if (!collapse) run.forEach((s) => pieces.push({ state: s.state, quiet: false, html: (next) => stopHtml(s, next) }));
+    else {
+      const key = runKey(l.name, run);
+      const hid = hashStationId();
+      if (hid && run.some((s) => s.id === hid) && !revealedByHash.has(hid)) {
+        revealedByHash.add(hid);
+        openRuns.add(key);
+      }
+      const open = openRuns.has(key);
+      const kept = run;
+      pieces.push({ state: "quiet", quiet: true, html: () => packHtml(key, kept, open) });
+      if (open) kept.forEach((s) => pieces.push({ state: s.state, quiet: false, html: (next) => stopHtml(s, next) }));
+    }
+    run = [];
+  };
+  for (const s of l.shown) {
+    if (collapse && omitOnTrack(s)) run.push(s);
+    else { flush(); pieces.push({ state: s.state, quiet: false, html: (next) => stopHtml(s, next) }); }
+  }
+  flush();
+  const html = pieces.map((p, i) => p.html(pieces[i + 1] ? pieces[i + 1].state : "")).join("");
+  const quiet = pieces.length > 0 && pieces.every((p) => p.quiet);
+  return { html, quiet };
+}
+
+function lineHtml(l) {
+  const pct = l.total ? (l.done / l.total) * 100 : 0;
+  const open = l.review + l.doing + l.todo + l.paused;
+  const pill = (k, n) => (n ? `<span class="pill" data-state="${k}">${STATES[k].label} ${n}</span>` : "");
+  const foot = [
+    l.archived ? `<span class="tag">已归档 ${esc(l.archived)}</span>` : !open ? `<span class="pill" data-state="done">${dot("done", true)}全线到站</span>` : "",
+    pill("review", l.review), pill("doing", l.doing), pill("todo", l.todo), pill("paused", l.paused), pill("dropped", l.dropped),
+  ].filter(Boolean).join("");
+  const act = !SERVER ? "" : l.archived
+    ? `<button type="button" class="line-act" data-act="restore" data-line="${esc(l.name)}">恢复项目</button>`
+    : `<button type="button" class="line-act" data-act="archive" data-line="${esc(l.name)}">归档项目</button>`;
+  const pin = SERVER
+    ? `<button type="button" class="pin-btn" data-pin-line="${esc(l.name)}" aria-pressed="${!!l.pinned}" title="${l.pinned ? (l.parent ? `取消在「${esc(l.parent)}」里置顶` : "取消置顶这条线") : l.parent ? `在「${esc(l.parent)}」里置顶：排到组里最前` : "置顶这条线"}" aria-label="${l.pinned ? "取消置顶" : "置顶"}「${esc(l.name)}」">${PIN(l.pinned)}</button>`
+    : l.pinned ? `<span class="pin-static" title="已置顶">${PIN(true)}</span>` : "";
+  // 折起的线：只剩一行（名字、已到几站、进度条、各状态个数、项目页），轨道不画
+  const hid = hashStationId();
+  const isFolded = lineFolded(l) && !filters.q && !(hid && l.shown.some((s) => s.id === hid));
+  const aria = `${esc(l.name)}：${l.total} 站，已到 ${l.done} 站${l.pinned ? "，已置顶" : ""}`;
+  const title = `<div class="line-title">${foldBtn("data-fold-line", l.name, !isFolded, `「${l.name}」`)}<span class="line-no" title="${l.no} 号线">${l.no}</span><span class="line-name">${esc(l.name)}</span>${pin}</div>`;
+  if (isFolded) {
+    return `<section class="line folded"${l.archived ? " data-archived" : ""} aria-label="${aria}，已折起">
+    <div class="fold-row">
+      ${title}
+      <div class="line-count">已到 <b>${l.done}</b> / ${l.total} 站</div>
+      <div class="bar" role="img" aria-label="到站比例 ${Math.round(pct)}%"><i style="width:${pct}%"></i></div>
+      <div class="line-foot">${foot}</div>
+      ${l.page ? `<div class="line-links"><a href="${l.page}">项目页</a></div>` : ""}
+    </div>
+  </section>`;
+  }
+  const track = trackHtml(l);
+  return `<section class="line"${l.archived ? " data-archived" : ""} aria-label="${aria}">
+    <div class="line-head">
+      ${title}
+      ${l.parent && l.branch ? `<div class="line-branch" title="代码分支：${esc(l.branch)}">${BRANCH}<span>分支 ${esc(l.branch)}</span></div>` : ""}
+      <div class="line-count">已到 <b>${l.done}</b> / ${l.total} 站</div>
+      <div class="bar" role="img" aria-label="到站比例 ${Math.round(pct)}%"><i style="width:${pct}%"></i></div>
+      <div class="line-foot">${foot}</div>
+      ${l.page || act ? `<div class="line-links">${l.page ? `<a href="${l.page}">项目页</a>` : ""}${act}</div>` : ""}
+    </div>
+    <div class="track-wrap" data-line="${esc(l.name)}"><ol class="track${track.quiet ? " is-quiet" : ""}">
+      ${track.html}
+    </ol></div>
+  </section>`;
+}
+
+// 父节点分组卡：卡头汇总各支线，下面用树形连线挂着每条支线（支线还是原来的线路卡）
+function famHtml(u) {
+  // 支线上的图钉 = 组内置顶：置顶的支线（或它有置顶的站）排在组里最前，整组还待在原来那一块
+  const ls = [...u.lines].sort((a, b) => Number(pinRelated(b)) - Number(pinRelated(a)) || a.no - b.no);
+  const sum = (k) => ls.reduce((n, l) => n + l[k], 0);
+  const total = sum("total"), done = sum("done");
+  const pct = total ? (done / total) * 100 : 0;
+  // 正在搜索、或地址栏指着组里某一站时，不管收没收都摊开，免得要找的站藏在里面
+  const hid = hashStationId();
+  const forced = !!filters.q || (hid && ls.some((l) => l.shown.some((s) => s.id === hid)));
+  const collapsed = famCollapsed.has(u.parent) && !forced;
+  const pill = (k, n) => (n ? `<span class="pill" data-state="${k}">${STATES[k].label} ${n}</span>` : "");
+  const lineState = (l) => (l.review ? "review" : l.doing || l.todo || l.paused ? "doing" : l.done === l.total ? "done" : "");
+  const pills = collapsed
+    ? ls.map((l) => `<span class="pill" data-state="${lineState(l)}" title="${esc(l.name)}：已到 ${l.done} / ${l.total} 站${l.archived ? "（已归档）" : ""}">${esc(l.name)} ${l.done}/${l.total}</span>`).join("")
+    : [pill("done", done), pill("review", sum("review")), pill("doing", sum("doing")), pill("todo", sum("todo")), pill("paused", sum("paused")), pill("dropped", sum("dropped"))].join("");
+  return `<section class="fam" aria-label="父节点 ${esc(u.parent)}：${ls.length} 条支线，已到 ${done} / ${total} 站">
+    <div class="fam-head" data-fam-head="${esc(u.parent)}">
+      ${foldBtn("data-fam", u.parent, !collapsed, `「${u.parent}」的支线`)}
+      <span class="fam-badge" aria-hidden="true">${FORK}</span>
+      <div class="fam-title">
+        <div class="fam-name">${esc(u.parent)}<span class="pill">父节点</span></div>
+        <div class="fam-sub">${ls.length} 条支线 · 已到 <b>${done}</b> / ${total} 站</div>
+      </div>
+      <div class="bar" role="img" aria-label="到站比例 ${Math.round(pct)}%"><i style="width:${pct}%"></i></div>
+      <div class="fam-pills">${pills}</div>
+      <button type="button" class="fam-toggle" data-fam="${esc(u.parent)}" aria-expanded="${!collapsed}">${collapsed ? "展开支线" : "收起支线"}</button>
+    </div>
+    ${collapsed ? "" : `<div class="kids">${ls.map((l) => `<div class="kid">${lineHtml(l)}</div>`).join("")}</div>`}
+  </section>`;
+}
+
+function renderMetro(lines) {
+  const isOpen = (l) => !l.archived && l.review + l.doing + l.todo + l.paused > 0;
+  // 先把同一父节点的支线收成一组：一组整体进一块，排在组里最靠前那条线原来的位置
+  const units = [];
+  const famAt = new Map();
+  for (const l of lines) {
+    if (!l.parent) { units.push({ lines: [l] }); continue; }
+    if (!famAt.has(l.parent)) { famAt.set(l.parent, units.length); units.push({ parent: l.parent, lines: [] }); }
+    units[famAt.get(l.parent)].lines.push(l);
+  }
+  units.forEach((u) => u.parent && u.lines.sort((a, b) => a.no - b.no));
+  // 单条线置顶了进「置顶」块；父节点组里的置顶只在组里排序，整组按有没有没到站的线进「还有站没到」，全组都归档了才进「已归档」
+  const zoneOf = (u) => (!u.parent && u.lines.some(pinRelated) ? "pinned" : u.lines.some(isOpen) ? "open" : u.lines.every((l) => l.archived) ? "archived" : "done");
+  // 每一类线路一块底色（颜色在样式里的 --z-*），标题旁一句话说明这一块是什么
+  const zones = [
+    ["pinned", "置顶", "你点了图钉的线路和站，排在最前", PIN(true)],
+    ["open", "还有站没到的线路", "还有需求没做完", GROUP_ICON.open],
+    ["done", "全线到站的线路", "这些项目的需求都做完了", GROUP_ICON.done],
+    ["archived", "已归档线路", "收起来不再推进，随时可以恢复", GROUP_ICON.archived],
+  ];
+  return zones.map(([key, title, desc, icon]) => {
+    const us = units.filter((u) => zoneOf(u) === key);
+    if (!us.length) return "";
+    const n = us.reduce((k, u) => k + u.lines.length, 0);
+    // 分块折起：只剩标题这一行（点标题行任意处或小三角都能折 / 展）
+    const zFolded = folded.zones.has(key) && !filters.q;
+    return `<section class="zone" data-zone="${key}"${zFolded ? " data-folded" : ""} aria-label="${title}">
+      <div class="zone-head" data-zone-head="${key}">${foldBtn("data-fold-zone", key, !zFolded, `「${title}」`)}<span class="z-icon" aria-hidden="true">${icon}</span><h2>${title}</h2><span class="z-count">${n} 条</span><span class="z-desc">${zFolded ? "已折起，点这一行展开" : desc}</span></div>
+      ${us.map((u) => (u.parent ? famHtml(u) : lineHtml(u.lines[0]))).join("")}
+    </section>`;
+  }).join("");
+}
+
+// 当前范围外还有线没显示时的提示；「只看置顶的」打开时只提范围外的置顶线
+function moreHtml() {
+  if (filters.scope === "all") return "";
+  const fams = famsInScope();
+  const out = DATA.lines.filter((l) => !inView(l, fams));
+  const archivedLineCount = out.filter((l) => l.archived).length;
+  const outPinned = out.filter(pinRelated).length;
+  const archivedPinned = out.filter((l) => l.archived && pinRelated(l)).length;
+  const msg = filters.pin
+    ? outPinned && `还有 ${outPinned} 条置顶的线路在已归档或非主要项目里，没显示。`
+    : archivedLineCount && `还有 ${archivedLineCount} 条已归档线路没显示${archivedPinned ? `（其中 ${archivedPinned} 条置顶）` : ""}。`;
+  return msg ? `<div class="more">${msg}<button type="button" class="linkish" id="show-archived">显示</button></div>` : "";
+}
+
+function renderTable(lines) {
+  const rows = lines.flatMap((l) => l.shown.map((s) => `<tr data-id="${esc(s.id)}" tabindex="0">
+      <td class="num">#${esc(s.id)}${s.pinned ? ` <span title="已置顶" style="display:inline-block;width:12px;vertical-align:-1px;color:var(--text-primary)">${PIN(true)}</span>` : ""}</td>
+      <td>${l.parent ? esc(l.parent) + " › " : ""}${esc(s.project)}${l.pinned ? "（置顶）" : ""}${l.archived ? "（已归档）" : ""}</td>
+      <td>${esc(s.title)}</td>
+      <td><span class="state">${dot(s.state, true)}${STATES[s.state].label}</span>${accTag(s)}</td>
+      <td class="num">${esc(s.priority)}</td>
+      <td>${esc(EXEC[s.exec] || "—")}</td>
+      <td class="date">${esc(s.created || "—")}</td>
+      <td class="date">${esc(s.done || "—")}</td>
+    </tr>`)).join("");
+  return `<div class="table-wrap"><table>
+    <thead><tr><th>编号</th><th>项目</th><th>需求</th><th>状态</th><th>优先级</th><th>谁来做</th><th>提出</th><th>到站</th></tr></thead>
+    <tbody>${rows}</tbody></table></div>`;
+}
+
+function render() {
+  const y = window.scrollY;
+  for (const [id, key] of [["#f-state", "state"], ["#f-scope", "scope"], ["#f-view", "view"]]) {
+    $(id).querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === filters[key])));
+  }
+  renderPinChip();
+  renderHeader();
+  renderBelt();
+  renderTodo();
+  const lines = visibleLines();
+  const nothingPinned = filters.pin && !DATA.lines.some(pinRelated);
+  $("#view").innerHTML = !lines.length
+    ? `<div class="empty">${nothingPinned
+        ? `还没有置顶的内容。${SERVER ? "点线路标题右边的图钉可以置顶一条线；点开某一站，面板右上角可以置顶这一站。" : "用「打开地铁图.bat」打开后就能置顶。"}`
+        : "没有符合条件的站点。换个筛选条件试试。"}</div>${moreHtml()}`
+    : (filters.view === "table" ? renderTable(lines) : renderMetro(lines)) + moreHtml();
+  if (y) window.scrollTo(0, y);
+  hideTip();
+}
+
+/* 置顶开关：直接改内存里的数据再重画，不整页刷新，滚动位置不动 */
+async function togglePin(kind, key) {
+  const target = kind === "project" ? lineByName.get(key) : byId.get(key);
+  if (!target || !SERVER) return;
+  const next = !target.pinned;
+  try {
+    await api("/api/pin", { kind, key, pinned: next });
+    target.pinned = next;
+    render();
+    toast(next ? `已置顶${kind === "project" ? `「${key}」` : ` #${key}`}` : "已取消置顶", 1600);
+    return true;
+  } catch (ex) {
+    toast(ex.message);
+    return false;
+  }
+}
+function setPinFilter(on) {
+  filters.pin = on;
+  saveFilters();
+  render();
+}
+
+/* 悬浮提示 */
+const tip = $("#tip");
+function showTip(el) {
+  const s = byId.get(el.dataset.id);
+  if (!s) return;
+  const dates = [s.created && `提出 ${s.created}`, s.done && `到站 ${s.done}`, s.paused && `暂缓 ${s.paused}`, s.due && s.due !== "none" && `截止 ${s.due}`].filter(Boolean).join(" · ");
+  tip.innerHTML = `<div class="t-id">${dot(s.state, true)}#${esc(s.id)} · ${esc(s.project)} · ${STATES[s.state].label}</div>
+    <div>${esc(s.text.length > 150 ? s.text.slice(0, 150) + "…" : s.text)}</div>
+    <div class="t-dates">${esc(dates)}${s.exec ? " · " + esc(EXEC[s.exec] || s.exec) : ""}${SERVER ? " · 点击或右键可更新" : ""}</div>`;
+  tip.hidden = false;
+  const r = el.getBoundingClientRect(), t = tip.getBoundingClientRect();
+  let x = r.left + r.width / 2 - t.width / 2;
+  x = Math.max(8, Math.min(x, window.innerWidth - t.width - 8));
+  let y = r.top - t.height - 8;
+  if (y < 8) y = r.bottom + 8;
+  tip.style.left = x + "px";
+  tip.style.top = y + "px";
+}
+function hideTip() { tip.hidden = true; }
+
+/* 提示条 */
+let toastTimer = 0;
+function toast(msg, ms = 3200) {
+  const el = $("#toast");
+  el.textContent = msg;
+  el.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.hidden = true; }, ms);
+}
+
+/* 请求本地服务：连不上、或者迟迟不答话（服务卡住了）都换成一句能照着做的话 */
+const NO_SERVER = "连不上看板服务：双击看板目录里的「打开地铁图.bat」重新打开";
+const STUCK_SERVER = "看板服务没有响应：双击看板目录里的「打开地铁图.bat」，它会换掉卡住的服务，然后刷新本页";
+async function callServer(path, init, ms = 15000) {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), ms);
+  try {
+    return await fetch(path, { ...init, signal: ctl.signal });
+  } catch (e) {
+    throw new Error(e.name === "AbortError" ? STUCK_SERVER : NO_SERVER);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/* 写回台账（只有本地服务模式可用） */
+async function api(path, body) {
+  let r;
+  try {
+    r = await callServer(path, { method: "POST", headers: { "Content-Type": "application/json", "X-Board-Token": SERVER.token }, body: JSON.stringify(body) });
+  } catch (e) {
+    throw new Error(e.message === STUCK_SERVER ? `${STUCK_SERVER}，看看刚才这一步生效了没有` : e.message);
+  }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || `出错了（${r.status}）`);
+  return j;
+}
+// 服务端的 warnings 是「已照常执行，但顺带提醒一句」，接在成功提示后面，多停留几秒。
+function reloadWith(msg, res) {
+  const warnings = (res && res.result && res.result.warnings) || [];
+  const full = warnings.length ? `${msg}（${warnings.join("；")}）` : msg;
+  try { sessionStorage.setItem("metro-flash", JSON.stringify({ msg: full, y: window.scrollY, ms: warnings.length ? 9000 : 3200 })); } catch (e) {}
+  location.reload();
+}
+
+/* 面板与对话框 */
+const scrim = $("#scrim");
+let lastFocus = null;
+function openModal(html, { center = false } = {}) {
+  hideTip();
+  if (scrim.hidden) lastFocus = document.activeElement;
+  scrim.classList.toggle("center", center);
+  scrim.innerHTML = html;
+  scrim.hidden = false;
+}
+function closeModal() {
+  if (scrim.hidden) return;
+  scrim.hidden = true;
+  scrim.innerHTML = "";
+  if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+  if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
+}
+
+function editBlock(s) {
+  if (!SERVER) return `<div class="readonly-note">这是只读页面。双击看板目录里的「打开地铁图.bat」打开，就能在这里改这一站的状态、写备注。</div>`;
+  if (s.lineArchived) return `<div class="readonly-note">「${esc(s.project)}」整条线已归档。要改它的站点，先在线路左侧点「恢复项目」。</div>`;
+  return `<form class="edit" id="edit" data-id="${esc(s.id)}" data-state="${s.state}">
+    <h3>更新这一站</h3>
+    <fieldset class="picker" aria-label="状态">
+      ${Object.keys(STATES).map((k) => `<label class="opt"><input type="radio" name="st" value="${k}"${k === s.state ? " checked" : ""}>${dot(k, true)}<span>${STATES[k].label}<small>${STATES[k].hint}</small></span></label>`).join("")}
+    </fieldset>
+    ${accOf(s) === "auto" ? `<label class="opt opt-check"><input type="checkbox" name="verified"><span>我亲手验过了<small>这站现在是 <span class="acc acc-auto">自动验收</span>，勾上改成 <span class="acc acc-me">人工验收</span></small></span></label>` : ""}
+    <label class="field-label" for="note">备注（可不填；不改状态、只写备注也可以）</label>
+    <textarea id="note" name="note" rows="3" maxlength="500" placeholder="例如：已在真机上验过 / 方向变了，不做了 / 卡在等运维"></textarea>
+    <div class="actions"><button type="submit" class="btn primary" disabled>提交</button><span class="hint" id="edit-hint">选一个新状态，或写点备注</span></div>
+    <div class="err" id="edit-err" hidden></div>
+  </form>`;
+}
+
+function openSheet(id, { focusEdit = false } = {}) {
+  const s = byId.get(id);
+  if (!s) return;
+  const row = (k, v) => (v ? `<dt>${k}</dt><dd>${esc(v)}</dd>` : "");
+  const hist = s.history && s.history.length
+    ? `<h3>变更记录</h3><ul class="hist">${s.history.map((h) => `<li><span class="when">${esc(h.at)}</span> · ${esc(h.change)}${h.note ? `<span class="note">${esc(h.note)}</span>` : ""}</li>`).join("")}</ul>`
+    : "";
+  openModal(`<aside class="sheet" role="dialog" aria-modal="true" aria-label="需求详情">
+    <div class="sheet-top"><span class="state">${dot(s.state)}${STATES[s.state].label}${accTag(s)}</span>
+      <span style="display:inline-flex;gap:8px;align-items:center">${SERVER
+        ? `<button type="button" class="btn" data-pin-task="${esc(s.id)}" aria-pressed="${!!s.pinned}" style="display:inline-flex;align-items:center;gap:6px"><span style="width:14px;display:inline-grid">${PIN(s.pinned)}</span>${s.pinned ? "取消置顶" : "置顶这一站"}</button>`
+        : s.pinned ? `<span class="tag"><span style="width:12px;display:inline-grid">${PIN(true)}</span>已置顶</span>` : ""}
+      <button type="button" class="btn" data-close>关闭</button></span></div>
+    <h2>${esc(s.title)}</h2>
+    <div class="sub">#${esc(s.id)} · ${s.lineNo} 号线 ${esc(s.project)}</div>
+    <div class="full">${esc(s.text)}</div>
+    ${editBlock(s)}
+    <h3>这一站的信息</h3>
+    <dl class="kv">
+      ${row("优先级", s.priority)}
+      ${row("谁来做", EXEC[s.exec] || "")}
+      ${row("提出日期", s.created)}
+      ${row("到站日期", s.done)}
+      ${row("验收方式", accOf(s) ? `${ACCEPT[accOf(s)].label}：${ACCEPT[accOf(s)].hint}` : "")}
+      ${row("暂缓日期", s.paused)}
+      ${row("归档日期", s.archived)}
+      ${row("截止日", s.due && s.due !== "none" ? s.due : "")}
+      ${row("记录位置", s.source)}
+    </dl>
+    ${hist}
+    ${s.linePage ? `<div class="links"><a href="${s.linePage}">打开「${esc(s.project)}」项目页</a>（现状、下一步、待你验收、进展日志）</div>` : ""}
+  </aside>`);
+  const form = $("#edit");
+  if (form) wireEdit(form);
+  (focusEdit && form ? form.querySelector("input:checked") : $("[data-close]")).focus();
+}
+
+function wireEdit(form) {
+  const btn = form.querySelector("button[type=submit]");
+  const hint = $("#edit-hint"), err = $("#edit-err");
+  const current = form.dataset.state;
+  const refresh = () => {
+    const st = form.st.value, note = form.note.value.trim();
+    const verified = !!(form.verified && form.verified.checked && st === "done");
+    btn.disabled = st === current && !note && !verified;
+    hint.textContent = st !== current ? `${STATES[current].label} → ${STATES[st].label}${st === "done" ? "（人工验收）" : ""}` : verified ? "自动验收 → 人工验收" : note ? "只记一条备注，状态不变" : "选一个新状态，或写点备注";
+  };
+  form.addEventListener("input", refresh);
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    btn.disabled = true; err.hidden = true; hint.textContent = "正在写入台账…";
+    try {
+      const st = form.st.value;
+      // 你在这里把一站点成「已到站」，或勾「我亲手验过了」= 人工验收
+      const verified = !!(form.verified && form.verified.checked);
+      const accept = st === "done" && (current !== "done" || verified) ? "me" : "";
+      const res = await api("/api/set-status", { id: form.dataset.id, status: st, note: form.note.value, accept });
+      reloadWith(st !== current ? `#${form.dataset.id} 已更新：${STATES[current].label} → ${STATES[st].label}` : accept ? `#${form.dataset.id} 已改成人工验收` : `#${form.dataset.id} 已记下备注`, res);
+    } catch (ex) {
+      err.textContent = ex.message; err.hidden = false; refresh();
+    }
+  });
+}
+
+function openLineDialog(name, act) {
+  const l = lineByName.get(name);
+  if (!l) return;
+  const open = l.review + l.doing + l.todo + l.paused;
+  const body = act === "archive"
+    ? `<h2>归档「${esc(name)}」这条线？</h2>
+       <ul>
+         <li>已到站的 <b>${l.done}</b> 站：移入归档，保持绿色。</li>
+         ${open ? `<li>还有 <b>${open}</b> 站没标完成——它们怎么算，在下面选。</li>` : ""}
+         <li>这条线会收进页面底部的「已归档线路」，不再出现在日常视野和每日焦点里。</li>
+       </ul>
+       ${open ? `<fieldset class="picker" aria-label="没标完成的站怎么算" style="grid-template-columns:1fr">
+         <label class="opt"><input type="radio" name="undone" value="dropped" checked>${dot("dropped", true)}<span>没做完，标为「停运」<small>灰色 ×，不会变绿——项目不做了 / 先搁置</small></span></label>
+         <label class="opt"><input type="radio" name="undone" value="done">${dot("done", true)}<span>其实做完了，算「已到站」<small>变绿，到站日期记今天——项目完成了，只是之前没来得及标</small></span></label>
+       </fieldset>` : ""}
+       <p>随时可以在已归档线路上点「恢复项目」，所有站会按原来的状态放回去。</p>`
+    : `<h2>恢复「${esc(name)}」这条线？</h2>
+       <p>归档时移走的站会按原来的状态放回台账：到站的仍是到站，没做完的回到待验收 / 进行中 / 未到站 / 暂缓。</p>`;
+  openModal(`<form class="dialog" id="line-form" role="dialog" aria-modal="true">
+    ${body}
+    <label class="field-label" for="line-note">备注（可不填）</label>
+    <textarea id="line-note" rows="2" maxlength="500" placeholder="${act === "archive" ? "例如：项目已交付 / 不再维护" : "例如：客户又提了新需求"}"></textarea>
+    <div class="actions"><button type="submit" class="btn primary">${act === "archive" ? "确认归档" : "确认恢复"}</button><button type="button" class="btn" data-close>取消</button></div>
+    <div class="err" id="line-err" hidden></div>
+  </form>`, { center: true });
+  const form = $("#line-form");
+  form.querySelector("[data-close]").focus();
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = form.querySelector("button[type=submit]"), err = $("#line-err");
+    btn.disabled = true; err.hidden = true;
+    try {
+      const undoneAs = form.undone ? form.undone.value : "dropped";
+      const res = await api(act === "archive" ? "/api/archive-project" : "/api/restore-project", { name, note: $("#line-note").value, undoneAs });
+      reloadWith(act === "archive" ? `「${name}」已归档。在「含已归档」里可以找到并恢复。` : `「${name}」已恢复`, res);
+    } catch (ex) {
+      err.textContent = ex.message; err.hidden = false; btn.disabled = false;
+    }
+  });
+}
+
+/* 事件 */
+for (const [id, key] of [["#f-state", "state"], ["#f-scope", "scope"], ["#f-view", "view"]]) {
+  $(id).addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    filters[key] = b.dataset.v;
+    saveFilters();
+    render();
+  });
+}
+$("#f-q").addEventListener("input", (e) => { filters.q = e.target.value.trim(); render(); });
+$("#f-pin").addEventListener("click", () => setPinFilter(!filters.pin));
+// 「筛选」面板开没开只记在本机浏览器里
+const FILTERS_OPEN_KEY = "metro-filters-open-v1";
+try { $("#filters").hidden = localStorage.getItem(FILTERS_OPEN_KEY) !== "1"; } catch (e) {}
+$("#f-toggle").addEventListener("click", () => {
+  const panel = $("#filters");
+  panel.hidden = !panel.hidden;
+  try { localStorage.setItem(FILTERS_OPEN_KEY, panel.hidden ? "0" : "1"); } catch (e) {}
+  renderHeader();
+});
+$("#belt").addEventListener("click", (e) => {
+  const more = e.target.closest("[data-belt-more]");
+  if (more) { const i = +more.dataset.beltMore; beltOpen.has(i) ? beltOpen.delete(i) : beltOpen.add(i); return renderBelt(); }
+  const b = e.target.closest("[data-jump]");
+  if (b) jumpTo(b.dataset.jump);
+});
+$("#todo").addEventListener("click", (e) => {
+  if (e.target.closest("#todo-more")) { todoAll = !todoAll; return renderTodo(); }
+  const row = e.target.closest("[data-jump]");
+  if (row) jumpTo(row.dataset.jump);
+});
+
+const view = $("#view");
+view.addEventListener("mouseover", (e) => { const el = e.target.closest(".station"); if (el) showTip(el); });
+view.addEventListener("mouseout", (e) => { if (e.target.closest(".station")) hideTip(); });
+view.addEventListener("focusin", (e) => { const el = e.target.closest(".station"); if (el) showTip(el); });
+view.addEventListener("focusout", hideTip);
+view.addEventListener("click", (e) => {
+  const foldLine = e.target.closest("[data-fold-line]");
+  if (foldLine) {
+    toggleLineFold(foldLine.dataset.foldLine);
+    return render();
+  }
+  const zoneHead = e.target.closest("[data-zone-head]");
+  if (zoneHead) {
+    const k = zoneHead.dataset.zoneHead;
+    if (folded.zones.has(k)) folded.zones.delete(k); else folded.zones.add(k);
+    saveFolded();
+    return render();
+  }
+  // 卡头上的小三角、「收起支线」按钮、卡头空白处都能折 / 展（卡头里的链接和图钉除外）
+  const famBtn = e.target.closest("[data-fam]") || (!e.target.closest("a, .pin-btn") && e.target.closest("[data-fam-head]"));
+  if (famBtn) {
+    const k = famBtn.dataset.fam || famBtn.dataset.famHead;
+    if (famCollapsed.has(k)) famCollapsed.delete(k); else famCollapsed.add(k);
+    saveFam();
+    return render();
+  }
+  const pinBtn = e.target.closest("[data-pin-line]");
+  if (pinBtn) return togglePin("project", pinBtn.dataset.pinLine);
+  const act = e.target.closest(".line-act");
+  if (act) return openLineDialog(act.dataset.line, act.dataset.act);
+  if (e.target.closest("#show-archived")) { filters.scope = "all"; saveFilters(); return render(); }
+  const pack = e.target.closest("[data-run]");
+  if (pack) {
+    const k = pack.dataset.run;
+    if (openRuns.has(k)) openRuns.delete(k); else openRuns.add(k);
+    return render();
+  }
+  const el = e.target.closest("[data-id]");
+  if (el) openSheet(el.dataset.id);
+});
+// 右键一站 = 直接去改它的状态（和左键是同一个面板，只是光标先落在状态上）
+view.addEventListener("contextmenu", (e) => {
+  const el = e.target.closest("[data-id]");
+  if (!el) return;
+  e.preventDefault();
+  openSheet(el.dataset.id, { focusEdit: true });
+});
+view.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.matches("tr[data-id]")) openSheet(e.target.dataset.id); });
+window.addEventListener("scroll", hideTip, true);
+scrim.addEventListener("click", async (e) => {
+  const pinBtn = e.target.closest("[data-pin-task]");
+  if (pinBtn) {
+    // 就地更新按钮，不重画面板——面板里可能有还没提交的备注
+    const id = pinBtn.dataset.pinTask;
+    if (await togglePin("task", id)) {
+      const on = !!byId.get(id).pinned;
+      pinBtn.setAttribute("aria-pressed", String(on));
+      pinBtn.innerHTML = `<span style="width:14px;display:inline-grid">${PIN(on)}</span>${on ? "取消置顶" : "置顶这一站"}`;
+    }
+    return;
+  }
+  if (e.target === scrim || e.target.closest("[data-close]")) closeModal();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") return closeModal();
+  // P = 切换「只看置顶的」。正在输入文字、按着修饰键、或面板开着时不响应。
+  if ((e.key === "p" || e.key === "P") && !e.ctrlKey && !e.metaKey && !e.altKey && scrim.hidden
+      && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || "")) {
+    e.preventDefault();
+    setPinFilter(!filters.pin);
+  }
+});
+
+$("#meta").textContent = SERVER
+  ? `数据来自 TODO.md 与 ARCHIVE.md（台账更新于 ${DATA.ledgerUpdated || "—"}）· 读取于 ${DATA.generatedAt.slice(11)} · 点一站（或右键）可以改状态、写备注；线路左侧可以归档整个项目`
+  : `数据来自 TODO.md 与 ARCHIVE.md（台账更新于 ${DATA.ledgerUpdated || "—"}）· 本页生成于 ${DATA.generatedAt} · 这是只读快照；双击「打开地铁图.bat」打开的版本可以改状态、归档项目`;
+if (SERVER && (SERVER.stale || SERVER.libError)) {
+  const warn = document.createElement("div");
+  warn.className = "meta-warn";
+  warn.textContent = SERVER.stale
+    ? "看板服务本身有更新：点右上角「刷新」重启服务、换上新版"
+    : `看板代码有更新但没加载成功，还在用旧版，告诉 AI 修一下（${SERVER.libError}）`;
+  $("header").append(warn);
+}
+
+/* 右上角「刷新」：让服务换上新版看板代码（服务本身更新了就重启），再重新载入页面 */
+const refreshBtn = $("#refresh");
+if (SERVER) {
+  refreshBtn.hidden = false;
+  refreshBtn.title = SERVER.stale ? "看板服务有更新：点一下重启服务并刷新" : "重新读取台账；看板代码更新过会顺带换上新版";
+  if (SERVER.stale) refreshBtn.classList.add("primary");
+  refreshBtn.addEventListener("click", refreshBoard);
+}
+async function refreshBoard() {
+  const label = refreshBtn.querySelector("span");
+  const busy = (on, text) => { refreshBtn.disabled = on; refreshBtn.classList.toggle("busy", on); label.textContent = text; };
+  const fail = (msg) => { busy(false, "刷新"); toast(msg, 9000); };
+  busy(true, "刷新中…");
+  let r, j;
+  try {
+    r = await callServer("/api/refresh", { method: "POST", headers: { "Content-Type": "application/json", "X-Board-Token": SERVER.token }, body: "{}" });
+    j = await r.json().catch(() => ({}));
+  } catch (e) {
+    return fail(e.message);
+  }
+  if (r.status === 403) return reloadWith("已刷新"); // 服务重启过、页面令牌旧了：重新载入即可
+  if (r.status === 404) return fail("看板服务是旧版，还不认识「刷新」：关掉「看板服务」窗口，再双击「打开地铁图.bat」");
+  if (!r.ok) return fail(j.error || `刷新出错了（${r.status}）`);
+  if (j.restarting) {
+    busy(true, "正在重启服务…");
+    if (await waitForRestart(j.boot)) return reloadWith("看板服务已重启，页面是最新的");
+    return fail("看板服务没能自动重启：双击看板目录里的「打开地铁图.bat」重新打开");
+  }
+  const warn = j.libError ? { result: { warnings: [`新版看板代码加载失败，还在用旧版：${j.libError}`] } } : null;
+  reloadWith(j.reloaded ? "已换上新版看板代码并刷新" : "已刷新", warn);
+}
+async function waitForRestart(oldBoot) {
+  for (let i = 0; i < 50; i++) { // 最多等 20 秒左右
+    await new Promise((ok) => setTimeout(ok, 400));
+    try {
+      const j = await (await callServer("/api/ping", { method: "POST" }, 2000)).json();
+      if (j.boot && j.boot !== oldBoot) return true;
+    } catch (e) { /* 旧服务已退、新服务还没起来 */ }
+  }
+  return false;
+}
+render();
+
+/* 深链：#T028 直接打开某一站；#table / #metro 切视图 */
+function applyHash() {
+  const h = decodeURIComponent(location.hash.slice(1));
+  if (/^T\d+$/.test(h)) { render(); openSheet(h); }
+  else if (h === "table" || h === "metro") { filters.view = h; render(); }
+}
+window.addEventListener("hashchange", applyHash);
+applyHash();
+
+/* 操作完成后刷新回来：恢复滚动位置并提示结果 */
+try {
+  const flash = JSON.parse(sessionStorage.getItem("metro-flash") || "null");
+  if (flash) { sessionStorage.removeItem("metro-flash"); window.scrollTo(0, flash.y || 0); toast(flash.msg, flash.ms); }
+} catch (e) {}
+
+/* 心跳：页面开着，本地服务就不会因空闲退出 */
+if (SERVER) setInterval(() => { fetch("/api/ping", { method: "POST" }).catch(() => {}); }, 60 * 1000);
+</script>
+</body>
+</html>

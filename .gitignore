@@ -1,0 +1,13 @@
+# 线路图操作前的台账自动备份
+.backup/
+
+# 生成物：node tools/build-metro.js 随时可重新生成
+metro.html
+
+# 个人本地配置
+.claude/settings.local.json
+
+# 日志与系统杂项
+*.log
+.DS_Store
+Thumbs.db

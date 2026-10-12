@@ -1,0 +1,377 @@
+<title>验收台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* 布局：一屏一张悬浮卡，身后叠着还没看的几张；顶栏筛选和进度，底栏是编号条和上一张 / 下一张 */
+:root{
+  --bg:#e7ecee; --paper:#ffffff; --ink:#1b2328; --ink-2:#55626a; --ink-3:#88959c;
+  --line:#d3dbde; --belt:#0e7c86; --belt-soft:#dff0f1; --shadow:rgba(20,40,48,.18);
+  --ok:#2f7d4f; --ok-soft:#e2f2e8; --redo:#b4492b; --redo-soft:#f8e6df; --late:#9a6400; --late-soft:#fbf0d6;
+  --f-display:"Noto Serif SC","Songti SC",serif; --f-body:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif; --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1417; --paper:#1a2226; --ink:#e6ecee; --ink-2:#a9b6bc; --ink-3:#74838a;
+  --line:#2c383d; --belt:#4fc0c9; --belt-soft:#16353a; --shadow:rgba(0,0,0,.55);
+  --ok:#6cc792; --ok-soft:#173327; --redo:#ee8a6c; --redo-soft:#3a2119; --late:#e5b45a; --late-soft:#352a12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1417; --paper:#1a2226; --ink:#e6ecee; --ink-2:#a9b6bc; --ink-3:#74838a;
+  --line:#2c383d; --belt:#4fc0c9; --belt-soft:#16353a; --shadow:rgba(0,0,0,.55);
+  --ok:#6cc792; --ok-soft:#173327; --redo:#ee8a6c; --redo-soft:#3a2119; --late:#e5b45a; --late-soft:#352a12; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.65;padding:0 16px;overflow:hidden}
+.app{height:100%;max-width:820px;margin:0 auto;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:10px;padding-block:14px 12px}
+button{font:inherit;color:inherit}
+button:focus-visible,textarea:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--belt);outline-offset:2px}
+
+/* 顶栏 */
+.bar{display:flex;flex-direction:column;gap:8px}
+.bar-row{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--f-display);font-size:22px;margin:0;letter-spacing:.04em}
+.count{font-family:var(--f-mono);font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.count b{color:var(--ink);font-size:15px}
+.filters{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;align-items:center}
+.filters::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--paper);color:var(--ink-2);border-radius:999px;padding:2px 11px;font-size:13px;cursor:pointer;white-space:nowrap}
+.chip b{color:var(--ink);font-family:var(--f-mono);margin-left:4px;font-weight:600}
+.chip[aria-pressed="true"]{border-color:var(--belt);background:var(--belt-soft);color:var(--belt)}
+.chip[aria-pressed="true"] b{color:var(--belt)}
+select{flex:0 0 auto;border:1px solid var(--line);background:var(--paper);color:var(--ink-2);border-radius:999px;padding:2px 10px;font:inherit;font-size:13px}
+
+/* 舞台：一张浮着，后面叠两张影子 */
+.app>*{min-width:0}
+.stage{position:relative;min-height:0;display:flex;align-items:center;justify-content:center;padding-bottom:20px}
+.card{position:relative;width:100%;max-height:100%;border-radius:16px;background:var(--paper);border:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 18px 44px var(--shadow),0 2px 6px var(--shadow);transition:transform .32s cubic-bezier(.2,.7,.3,1),opacity .32s}
+/* 身后还有几张：用叠纸的影子表示 */
+.card.stack1{box-shadow:0 10px 0 -6px var(--paper),0 10px 0 -5px var(--line),0 22px 44px var(--shadow)}
+.card.stack2{box-shadow:0 10px 0 -6px var(--paper),0 10px 0 -5px var(--line),0 20px 0 -12px var(--paper),0 20px 0 -11px var(--line),0 28px 48px var(--shadow)}
+.card.s-done{border-color:color-mix(in srgb,var(--ok) 50%,var(--line))}
+.card.s-rework{border-color:color-mix(in srgb,var(--redo) 50%,var(--line))}
+.card.out-done{transform:translate(70%,-6%) rotate(8deg);opacity:0}
+.card.out-rework{transform:translate(-70%,-6%) rotate(-8deg);opacity:0}
+.card.out-next{transform:translateX(-40%) scale(.96);opacity:0}
+.card.out-prev{transform:translateX(40%) scale(.96);opacity:0}
+.card.out-archive{transform:translateY(-40%) scale(.88);opacity:0}
+.card.s-archive{border-color:var(--line);opacity:.92}
+.card.out-later{transform:translateY(45%) scale(.88);opacity:0}
+.card.in{transform:translateY(14px) scale(.97);opacity:0;transition:none}
+.body{flex:0 1 auto;min-height:0;overflow-y:auto;padding:20px 22px 16px;display:flex;flex-direction:column;gap:14px;overflow-wrap:anywhere}
+.foot{flex:0 0 auto;border-top:1px solid var(--line);padding:12px 22px 14px;display:flex;flex-direction:column;gap:8px;background:var(--paper)}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;padding-right:92px}
+.tid{font-family:var(--f-mono);font-weight:600;color:var(--belt);font-size:14px}
+.proj{color:var(--ink-2);border:1px solid var(--line);border-radius:4px;padding:0 6px}
+.pill{border-radius:4px;padding:0 6px;font-variant-numeric:tabular-nums}
+.pill.late{background:var(--late-soft);color:var(--late)}
+.pill.ok{background:var(--belt-soft);color:var(--belt)}
+.pill.with{color:var(--ink-3);padding:0}
+h2{font-family:var(--f-display);font-size:22px;line-height:1.4;margin:0;text-wrap:balance}
+.dates{display:flex;flex-wrap:wrap;gap:4px 14px;margin:-8px 0 0;font-family:var(--f-mono);font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.dates b{font-family:var(--f-body);font-weight:400;color:var(--ink-3);margin-right:4px}
+.dates .wait{color:var(--late)}
+.summary{margin:-6px 0 0;color:var(--ink-2);font-size:14px}
+.shots{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scroll-snap-type:x mandatory;flex:0 0 auto}
+.shot{flex:0 0 auto;width:min(340px,72vw);margin:0;scroll-snap-align:start;display:flex;flex-direction:column;gap:4px}
+.shots.one .shot{width:100%}
+.shot button{padding:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--bg);cursor:zoom-in;display:block;width:100%}
+.shot img{display:block;width:100%;height:220px;object-fit:cover;object-position:top}
+.shots.one .shot img{height:auto;max-height:340px;object-fit:contain;background:var(--bg)}
+.shot figcaption{font-size:12px;color:var(--ink-3)}
+video{width:100%;max-height:340px;border-radius:10px;border:1px solid var(--line);background:#000;display:block}
+.noshot{font-size:13px;color:var(--ink-3);background:var(--bg);border-radius:10px;padding:10px 12px;margin:0}
+.sec{display:flex;flex-direction:column;gap:6px}
+.lbl{font-size:12px;letter-spacing:.08em;color:var(--ink-3)}
+.open{font-size:14px;color:var(--ink-2);margin:0}
+ol.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+ol.checks li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px;align-items:start}
+ol.checks input{margin:4px 0 0;width:16px;height:16px;accent-color:var(--belt)}
+ol.checks label{font-size:14px;cursor:pointer}
+ol.checks label b{font-weight:500}
+ol.checks .how{display:block;color:var(--ink-2)}
+ol.checks input:checked+label b{color:var(--ok)}
+.decide{background:var(--late-soft);border-radius:10px;padding:8px 12px;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.decide .lbl{color:var(--late)}
+details{font-size:13px;color:var(--ink-2)}
+summary{cursor:pointer;color:var(--ink-3)}
+.history{display:flex;flex-direction:column;gap:4px;border-left:2px solid var(--line);padding-left:10px;font-size:13px;color:var(--ink-2)}
+.history time{font-family:var(--f-mono);font-size:12px;color:var(--ink-3);margin-right:6px}
+textarea{width:100%;height:58px;resize:vertical;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:14px;padding:7px 10px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{font-size:14px;border-radius:10px;padding:7px 18px;cursor:pointer;border:1px solid transparent}
+.btn.done{background:var(--ok);color:var(--paper)}
+.btn.redo{background:transparent;color:var(--redo);border-color:var(--redo)}
+.btn.archive{background:transparent;color:var(--ink-3);border-color:transparent;text-decoration:underline;text-underline-offset:3px;padding-inline:8px}
+.stamp.archive{color:var(--ink-3)}
+.dot.archive{background:var(--bg);color:var(--ink-3);text-decoration:line-through}
+.btn.later{background:transparent;color:var(--ink-2);border-color:var(--line)}
+.pill.later{background:var(--bg);color:var(--ink-2)}
+.dot.later{border-style:dashed}
+.btn.ghostbtn{background:transparent;color:var(--ink-3);border-color:var(--line);font-size:13px;padding:5px 12px}
+.btn:disabled{opacity:.5;cursor:default}
+.msg{font-size:13px;color:var(--ink-3)}
+.keys{margin-left:auto;font-size:12px;color:var(--ink-3)}
+.keys kbd{font-family:var(--f-mono);border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:11px}
+.stamp{position:absolute;top:16px;right:18px;font-family:var(--f-display);font-weight:700;font-size:16px;border:2px solid currentColor;border-radius:6px;padding:2px 10px;transform:rotate(-5deg);letter-spacing:.12em;pointer-events:none;background:var(--paper);z-index:1}
+.stamp.done{color:var(--ok)} .stamp.rework{color:var(--redo)}
+.stamp small{display:block;font-family:var(--f-mono);font-size:10px;font-weight:400;letter-spacing:0;text-align:center}
+.empty{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;color:var(--ink-2);border:1px dashed var(--line);border-radius:16px;padding:24px}
+.empty h2{font-size:20px}
+.empty p{max-width:34em}
+.empty .actions{justify-content:center}
+
+/* 底栏：上一张 / 编号条 / 下一张 */
+.strip{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center}
+.navbtn{border:1px solid var(--line);background:var(--paper);border-radius:10px;padding:5px 12px;cursor:pointer;font-size:13px;color:var(--ink-2);white-space:nowrap}
+.navbtn:disabled{opacity:.4;cursor:default}
+.dots{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:2px}
+.dots::-webkit-scrollbar{display:none}
+.dot{flex:0 0 auto;font-family:var(--f-mono);font-size:11px;border:1px solid var(--line);background:var(--paper);color:var(--ink-3);border-radius:6px;padding:1px 6px;cursor:pointer}
+.dot.late{border-color:var(--late);color:var(--late)}
+.dot.done{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.dot.rework{background:var(--redo-soft);border-color:var(--redo);color:var(--redo)}
+.dot[aria-current="true"]{background:var(--belt);border-color:var(--belt);color:var(--paper)}
+
+.lightbox{position:fixed;inset:0;background:rgba(8,12,14,.88);display:flex;align-items:center;justify-content:center;padding:24px 16px;z-index:10;cursor:zoom-out}
+.lightbox img{max-width:100%;max-height:100%;border-radius:6px}
+@media (max-width:520px){
+  .body{padding:16px 16px 12px}.foot{padding:10px 16px 12px}
+  h2{font-size:19px}.keys{display:none}
+  .navbtn span{display:none}
+}
+@media (prefers-reduced-motion:reduce){.card{transition:none}}
+</style>
+
+<div class="app">
+  <header class="bar">
+    <div class="bar-row"><h1>验收台</h1><span class="count" id="count"></span></div>
+    <div class="filters" id="filters" role="group" aria-label="筛选"></div>
+  </header>
+  <main class="stage" id="stage"><div class="empty"><h2>正在读取验收单…</h2></div></main>
+  <nav class="strip" aria-label="翻页">
+    <button class="navbtn" id="prev" aria-label="上一张">‹<span> 上一张</span></button>
+    <div class="dots" id="dots"></div>
+    <button class="navbtn" id="next" aria-label="下一张"><span>下一张 </span>›</button>
+  </nav>
+</div>
+<div class="lightbox" id="lb" hidden><img id="lbimg" alt=""></div>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+const state = { cards: [], reviews: {}, filter: store.get("ysf-filter") || "todo", project: store.get("ysf-project") || "", db: null, drafts: {}, cur: store.get("ysf-cur") || "", busy: false, round: new Set() };
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const DUE_RE = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?$/;
+function dueMs(v) { const m = DUE_RE.exec(v || ""); if (!m) return NaN; return m[4] ? new Date(+m[1], m[2] - 1, +m[3], +m[4], +m[5]).getTime() : new Date(+m[1], m[2] - 1, +m[3] + 1).getTime(); }
+const isLate = (c) => dueMs(c.due) < Date.now();
+const fmtTime = (iso) => { const d = new Date(iso); return isNaN(d) ? "" : `${d.getMonth() + 1}-${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
+const stOf = (id) => state.reviews[id]?.state || "";
+// 「稍后再看」不算看过，但也不在「还没看」里：还没看的过完，再到「稍后再看」一栏一张张过
+const decided = (id) => { const s = stOf(id); return s === "done" || s === "rework" || s === "archive"; };
+const isLater = (id) => stOf(id) === "later";
+function duePill(c) {
+  const ms = dueMs(c.due); if (isNaN(ms)) return "";
+  const left = ms - Date.now(); const days = Math.floor(Math.abs(left) / 864e5); const hrs = Math.max(1, Math.round(Math.abs(left) / 36e5));
+  return left < 0 ? `<span class="pill late">验收筐 · 过期 ${days ? days + " 天" : hrs + " 小时"}</span>` : `<span class="pill ok">验收期还剩 ${days ? days + " 天" : hrs + " 小时"}</span>`;
+}
+function matches(c, f) {
+  const s = stOf(c.id);
+  if (state.project && c.project !== state.project) return false;
+  if (f === "todo") return !decided(c.id) && !isLater(c.id);
+  if (f === "late") return !decided(c.id) && !isLater(c.id) && isLate(c);
+  if (f === "all") return true;
+  return s === f;
+}
+function list() {
+  const l = state.cards.filter((c) => matches(c, state.filter));
+  if (state.filter !== "later") return l;
+  // 这一轮又点了「稍后再看」的先收起来，翻完一轮就停，不再几张卡来回转
+  const at = (c) => state.reviews[c.id]?.at || "";
+  return l.filter((c) => !state.round.has(c.id)).sort((a, b) => (at(a) < at(b) ? -1 : 1));
+}
+function curIndex(l = list()) { const i = l.findIndex((c) => c.id === state.cur); return i; }
+
+function renderBar() {
+  const F = [["todo", "还没看"], ["late", "验收筐"], ["later", "稍后再看"], ["rework", "已返工"], ["done", "已通过"], ["archive", "已归档"], ["all", "全部"]];
+  const projs = [...new Set(state.cards.map((c) => c.project))];
+  $("#filters").innerHTML = F.map(([k, t]) => `<button class="chip" data-f="${k}" aria-pressed="${state.filter === k}">${t}<b>${state.cards.filter((c) => matches(c, k)).length}</b></button>`).join("")
+    + `<select id="proj" aria-label="按项目"><option value="">所有项目</option>${projs.map((p) => `<option value="${esc(p)}" ${state.project === p ? "selected" : ""}>${esc(p)}</option>`).join("")}</select>`;
+  const l = list(); const i = curIndex(l);
+  const done = state.cards.filter((c) => decided(c.id)).length;
+  $("#count").innerHTML = l.length ? `第 <b>${i + 1}</b> / ${l.length} 张 · 已看 ${done} / ${state.cards.length}` : `已看 ${done} / ${state.cards.length}`;
+  $("#dots").innerHTML = l.map((c) => `<button class="dot ${stOf(c.id) || (isLate(c) ? "late" : "")}" data-go="${c.id}" aria-current="${c.id === state.cur}" title="${esc(c.title)}">${c.id.slice(1)}</button>`).join("");
+  $("#prev").disabled = i <= 0; $("#next").disabled = i < 0 || i >= l.length - 1;
+  $(`.dot[aria-current="true"]`)?.scrollIntoView({ block: "nearest", inline: "center" });
+}
+
+const DAY = 864e5;
+const md = (v) => { const m = DUE_RE.exec(v || ""); return m ? `${m[2]}-${m[3]}${m[4] ? " " + m[4] + ":" + m[5] : ""}` : ""; };
+function datesHtml(c) {
+  const parts = [];
+  if (c.created) parts.push(`<span><b>建</b>${md(c.created)}</span>`);
+  if (c.submitted) {
+    const m = DUE_RE.exec(c.submitted); const t = m ? new Date(+m[1], m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0)).getTime() : NaN;
+    const days = Math.floor((Date.now() - t) / DAY);
+    parts.push(`<span><b>交给你</b>${md(c.submitted)}${days >= 1 ? ` <span class="${days >= 3 ? "wait" : ""}">（等了 ${days} 天）</span>` : ""}</span>`);
+  }
+  if (DUE_RE.test(c.due || "")) parts.push(`<span><b>验收期到</b>${md(c.due)}</span>`);
+  return parts.length ? `<div class="dates">${parts.join("")}</div>` : "";
+}
+function cardHtml(c) {
+  const r = state.reviews[c.id] || {}; const s = r.state || ""; const ticks = r.checks || [];
+  const imgs = c.images || []; const n = imgs.length + (c.video ? 1 : 0);
+  const shots = imgs.map((im) => `<figure class="shot"><button type="button" data-zoom="${esc(im.url)}" aria-label="放大：${esc(im.cap)}"><img src="${esc(im.url)}" alt="${esc(im.cap)}"></button><figcaption>${esc(im.cap)}</figcaption></figure>`).join("");
+  const video = c.video ? `<figure class="shot"><video src="${esc(c.video.url)}" controls preload="metadata" playsinline></video><figcaption>${esc(c.video.cap)}</figcaption></figure>` : "";
+  const media = n ? `<div class="shots ${n === 1 ? "one" : ""}">${shots}${video}</div>` : `<p class="noshot">${esc(c.noShot || "这一站没有现成截图。要看画面就在批注里写「截图」或「录屏」，AI 下次替你截。")}</p>`;
+  const checks = (c.checks || []).length ? `<div class="sec"><span class="lbl">怎么验</span><ol class="checks">${c.checks.map((k, i) => `<li><input type="checkbox" id="ck-${c.id}-${i}" data-ck="${c.id}" data-i="${i}" ${ticks[i] ? "checked" : ""}><label for="ck-${c.id}-${i}"><b>${i + 1}. ${esc(k.t)}</b>${k.how ? `<span class="how">${esc(k.how)}</span>` : ""}</label></li>`).join("")}</ol></div>` : "";
+  const decide = (c.decide || []).length ? `<div class="decide"><span class="lbl">要你拍板</span>${c.decide.map((d) => `<div>${esc(d)}</div>`).join("")}</div>` : "";
+  const checked = c.checked ? `<details><summary>AI 已经替你查过的</summary><p>${esc(c.checked)}</p></details>` : "";
+  const hist = (r.history || []).length ? `<div class="history">${r.history.slice().reverse().map((h) => `<div><time>${fmtTime(h.at)}</time>${h.state === "done" ? "通过" : h.state === "rework" ? "批注返工" : h.state === "later" ? "稍后再看" : h.state === "archive" ? "归档（不再处理）" : h.state === "resubmit" ? "改完重新交来验收" : "撤回"}${h.note ? "：" + esc(h.note) : ""}</div>`).join("")}</div>` : "";
+  const later = s === "later"; const skips = (r.history || []).filter((h) => h.state === "later").length;
+  const stamp = s && !later ? `<div class="stamp ${s}">${s === "done" ? "通过" : s === "archive" ? "归档" : "返工"}<small>${fmtTime(r.at)}</small></div>` : "";
+  const ledger = s && !later ? `<span class="msg">${r.applied ? "已记进台账 " + fmtTime(r.appliedAt) : "等 AI 记进台账"}</span>` : "";
+  const buttons = s && !later
+    ? `<button class="btn ghostbtn" data-act="undo">撤回</button>${s === "archive" ? "" : s === "done" ? `<button class="btn redo" data-act="rework">改成返工</button>` : `<button class="btn redo" data-act="rework">再补一条批注</button><button class="btn done" data-act="done">改成通过</button>`}${ledger}`
+    : `<button class="btn done" data-act="done">通过</button><button class="btn redo" data-act="rework">批注返工</button><button class="btn later" data-act="later" title="先放一边：还没看的过完以后，到「稍后再看」一栏再给你">稍后再看</button><button class="btn archive" data-act="archive" title="旧方案、不用再迭代的：收起来不再处理">归档</button>`;
+  return `${stamp}<div class="body" id="body">
+      <div class="top"><span class="tid">#${c.id}</span><span class="proj">${esc(c.project)}</span>${duePill(c)}${later ? `<span class="pill later">稍后再看${skips > 1 ? " · 第 " + skips + " 次" : ""}</span>` : ""}${c.groupWith ? `<span class="pill with">和 #${esc(c.groupWith)} 一起验</span>` : ""}</div>
+      <h2>${esc(c.title)}</h2>
+      ${datesHtml(c)}
+      ${c.summary ? `<p class="summary">${esc(c.summary)}</p>` : ""}
+      ${media}
+      ${c.open ? `<div class="sec"><span class="lbl">在哪看</span><p class="open">${esc(c.open)}</p></div>` : ""}
+      ${checks}${decide}${checked}${hist}
+    </div>
+    <div class="foot">
+      <textarea id="note-${c.id}" data-note="${c.id}" aria-label="批注" placeholder="批注：哪里不对、想怎么改，直接写。通过、归档也可以留一句。">${esc(state.drafts[c.id] ?? "")}</textarea>
+      <div class="actions">${buttons}<span class="msg" id="msg" role="status"></span><span class="keys"><kbd>←</kbd><kbd>→</kbd> 翻页</span></div>
+    </div>`;
+}
+
+function render({ anim } = {}) {
+  if (!state.cards.length) {
+    $("#stage").innerHTML = `<div class="empty"><h2>${state.db ? "还没有验收单" : "读不到验收单"}</h2><p>${state.db ? "AI 把待验收的站放上来后，这里会一张张浮出来。" : "请登录后再打开这一页。"}</p></div>`;
+    renderBar(); return;
+  }
+  const l = list();
+  if (curIndex(l) < 0) state.cur = l[0]?.id || "";
+  store.set("ysf-cur", state.cur);
+  renderBar();
+  const i = curIndex(l);
+  if (!l.length) {
+    $("#stage").innerHTML = `<div class="empty">${emptyHtml()}</div>`; return;
+  }
+  const c = l[i]; const old = $("#card"); const sameCard = old && old.dataset.id === c.id;
+  const keepScroll = sameCard ? $("#body")?.scrollTop || 0 : 0;
+  const focusId = sameCard ? document.activeElement?.id : null;
+  const left = l.length - i - 1;
+  $("#stage").innerHTML = `<article class="card ${left >= 2 ? "stack2" : left === 1 ? "stack1" : ""} ${decided(c.id) ? "s-" + stOf(c.id) : ""} ${anim && !reduce ? "in" : ""}" id="card" data-id="${c.id}" aria-label="#${c.id} ${esc(c.title)}">${cardHtml(c)}</article>`;
+  if (keepScroll) $("#body").scrollTop = keepScroll;
+  if (focusId && document.getElementById(focusId)) document.getElementById(focusId).focus({ preventScroll: true });
+  if (anim && !reduce) requestAnimationFrame(() => requestAnimationFrame(() => $("#card")?.classList.remove("in")));
+}
+
+function emptyHtml() {
+  const tell = "跟 Claude 说一声「验收台看完了」，它会把通过、返工和归档记进台账，再接着改返工的。";
+  const nLater = state.cards.filter((c) => matches(c, "later")).length;
+  const f = state.filter;
+  if (f === "todo" || f === "late") {
+    const h = f === "todo" ? "还没看的都过完了" : "验收筐里没有要看的了";
+    return nLater
+      ? `<h2>${h}</h2><p>还有 <b>${nLater}</b> 张你放到了「稍后再看」。想现在看就点下面，不急就先放着。</p><div class="actions"><button class="btn later" data-f="later">现在看这 ${nLater} 张</button></div><p>${tell}</p>`
+      : `<h2>${h}</h2><p>${tell}</p>`;
+  }
+  if (f === "later" && nLater)
+    return `<h2>稍后再看的都翻过一遍了</h2><p>这 <b>${nLater}</b> 张还留着，下次打开再给你。想现在再过一遍也行。</p><div class="actions"><button class="btn later" data-again="1">再过一遍</button></div><p>${tell}</p>`;
+  return `<h2>这一栏没有卡片</h2><p>换个筛选看看。</p>`;
+}
+function leave(cls, then) {
+  const card = $("#card");
+  if (!card || reduce) { then(); return; }
+  card.classList.add(cls);
+  setTimeout(then, 300);
+}
+function go(delta) {
+  const l = list(); const i = curIndex(l); const j = i + delta;
+  if (i < 0 || j < 0 || j >= l.length || state.busy) return;
+  leave(delta > 0 ? "out-next" : "out-prev", () => { state.cur = l[j].id; render({ anim: true }); });
+}
+function jump(id) { if (id === state.cur) return; state.cur = id; render({ anim: true }); }
+
+async function act(kind) {
+  const id = state.cur; const db = state.db; if (!db || state.busy) return;
+  const note = (state.drafts[id] ?? "").trim();
+  if (kind === "rework" && !note) { $("#msg").textContent = "返工要写一句批注，说哪里不对。"; $("#note-" + id)?.focus(); return; }
+  const r = state.reviews[id] || {}; const at = new Date().toISOString();
+  const doc = { state: kind === "undo" ? "" : kind, note: kind === "undo" || kind === "later" ? "" : note, checks: [...(r.checks || [])], at,
+    history: [...(r.history || []), { state: kind, note, at }], applied: false, appliedAt: "" };
+  state.busy = true; document.querySelectorAll("[data-act]").forEach((b) => (b.disabled = true));
+  try { await db.doc("reviews/" + id).set(doc); }
+  catch (e) {
+    state.busy = false; document.querySelectorAll("[data-act]").forEach((b) => (b.disabled = false));
+    $("#msg").textContent = e?.code === "not_granted" || e?.code === "permission_denied" ? "没有保存：这一页你只能看不能改。" : "没有保存，请再点一次。"; return;
+  }
+  state.drafts[id] = "";
+  const i = curIndex(list());
+  state.reviews = { ...state.reviews, [id]: doc };
+  if (kind === "later" && state.filter === "later") state.round.add(id);
+  // 「稍后再看」和看过的都让它飞走，原来位置上的下一张顶上来；在「全部」里还看得到的就往后翻一张
+  const nl = list(); const still = nl.findIndex((c) => c.id === id);
+  let nextId;
+  if (still >= 0 && kind !== "later") nextId = nl[still + 1]?.id || id;
+  else nextId = (nl[i] && nl[i].id !== id ? nl[i].id : nl.find((c) => c.id !== id)?.id) || nl[0]?.id || "";
+  const cls = kind === "done" ? "out-done" : kind === "rework" ? "out-rework" : kind === "later" ? "out-later" : kind === "archive" ? "out-archive" : "out-prev";
+  leave(cls, () => { state.busy = false; state.cur = nextId; render({ anim: true }); });
+}
+async function tick(id, i, on) {
+  const r = state.reviews[id] || {}; const checks = [...(r.checks || [])]; checks[i] = on;
+  const doc = { state: "", history: [], ...r, checks };
+  state.reviews = { ...state.reviews, [id]: doc };
+  try { await state.db.doc("reviews/" + id).set(doc); } catch (e) {}
+}
+
+document.addEventListener("click", (e) => {
+  if (e.target.closest("#lb")) { $("#lb").hidden = true; return; }
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.dataset.again) { state.round.clear(); render({ anim: true }); }
+  else if (t.dataset.f) { if (t.dataset.f === "later" && state.filter !== "later") state.round.clear(); state.filter = t.dataset.f; store.set("ysf-filter", state.filter); render({ anim: true }); }
+  else if (t.dataset.go) jump(t.dataset.go);
+  else if (t.dataset.zoom) { $("#lbimg").src = t.dataset.zoom; $("#lb").hidden = false; }
+  else if (t.dataset.act) act(t.dataset.act);
+  else if (t.id === "prev") go(-1);
+  else if (t.id === "next") go(1);
+});
+document.addEventListener("change", (e) => {
+  if (e.target.id === "proj") { state.project = e.target.value; store.set("ysf-project", state.project); render({ anim: true }); return; }
+  const k = e.target.dataset.ck; if (k) tick(k, +e.target.dataset.i, e.target.checked);
+});
+document.addEventListener("input", (e) => { if (e.target.dataset.note) state.drafts[e.target.dataset.note] = e.target.value; });
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") { $("#lb").hidden = true; return; }
+  if (/^(TEXTAREA|INPUT|SELECT)$/.test(e.target.tagName)) return;
+  if (e.key === "ArrowRight") go(1);
+  if (e.key === "ArrowLeft") go(-1);
+});
+
+(async () => {
+  const db = await window.claude?.use?.("db");
+  state.db = db;
+  if (!db) { render(); return; }
+  const order = (c) => { const ms = dueMs(c.due); return (isNaN(ms) ? 9e15 : ms) + (c.sort || 0); };
+  let first = true;
+  db.collection("cards").onSnapshot((snap) => {
+    state.cards = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((c) => !c.hidden).sort((a, b) => order(a) - order(b));
+    if (!state.busy) render({ anim: first }); first = false;
+  }, () => render());
+  db.collection("reviews").onSnapshot((snap) => {
+    const map = {}; snap.docs.forEach((d) => (map[d.id] = d.data()));
+    const before = state.reviews[state.cur], after = map[state.cur];
+    state.reviews = map;
+    if (state.busy) return;
+    // 只是打勾变了：不重画卡片（免得视频重播、滚动跳动），只更新计数
+    if ((before?.state || "") === (after?.state || "") && (before?.at || "") === (after?.at || "") && $("#card")) renderBar();
+    else render();
+  }, () => {});
+})();
+</script>
